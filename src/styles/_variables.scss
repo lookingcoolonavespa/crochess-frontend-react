@@ -1,0 +1,21 @@
+$colors-light: (
+  background: #e1e1e1,
+  filter-background: invert(99%) sepia(61%) saturate(289%) hue-rotate(248deg)
+    brightness(112%) contrast(76%),
+  foreground: #fafafa,
+  filter-foreground: invert(100%) sepia(0%) saturate(2%) hue-rotate(306deg)
+    brightness(106%) contrast(96%),
+  action-primary: #c6dea6,
+  filter-action-primary: invert(96%) sepia(7%) saturate(1269%) hue-rotate(29deg)
+    brightness(92%) contrast(89%),
+  action-primary-hover: #d5f0b2,
+  action-secondary: #7cc6fe,
+  filter-action-secondary: invert(68%) sepia(33%) saturate(662%)
+    hue-rotate(173deg) brightness(102%) contrast(99%),
+  border-primary: #cccccc,
+  filter-border-primary: invert(98%) sepia(1%) saturate(2001%)
+    hue-rotate(349deg) brightness(131%) contrast(60%),
+  text-primary: #3f3f3f,
+  filter-text-primary: invert(22%) sepia(0%) saturate(42%) hue-rotate(207deg)
+    brightness(100%) contrast(90%),
+);

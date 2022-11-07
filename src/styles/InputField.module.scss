@@ -1,0 +1,26 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  column-gap: 20px;
+}
+
+.content {
+  display: flex;
+  column-gap: 10px;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+
+  input[type='number'] {
+    border-bottom: 1px solid var(--background);
+    width: 5em;
+  }
+}
+
+.error_msg {
+  font-size: 12px;
+  margin-top: 5px;
+  color: red;
+}

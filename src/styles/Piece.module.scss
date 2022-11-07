@@ -1,0 +1,49 @@
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  z-index: 2;
+  cursor: pointer;
+
+  img {
+    filter: var(--text-primary);
+  }
+}
+
+// .pawn.white::after {
+//   content: '\2659';
+// }
+// .pawn.black::after {
+//   content: '\265F';
+// }
+// .king.white::after {
+//   content: '\2654';
+// }
+// .king.black:after {
+//   content: url(../public/icons/chess_pieces/king-b.svg);
+// }
+// .queen.white:after {
+//   content: '\2655';
+// }
+// .queen.black:after {
+//   content: url(../public/icons/chess_pieces/queen-b.svg);
+// }
+// .rook.white:after {
+//   content: '\2656';
+// }
+// .rook.black:after {
+//   content: '\265C';
+// }
+// .bishop.white:after {
+//   content: '\2657';
+// }
+// .bishop.black:after {
+//   content: '\265D';
+// }
+// .knight.white:after {
+//   content: '\2658';
+// }
+// .knight.black:after {
+//   content: '\265E';
+// }

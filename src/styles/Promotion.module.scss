@@ -1,0 +1,20 @@
+@use './mixins';
+
+.main {
+  background-color: var(--foreground);
+  position: absolute;
+  z-index: 3;
+  border-radius: 5px;
+}
+
+.piece-wrapper {
+  @include mixins.flexCenter(row);
+
+  width: 75px;
+  height: 75px;
+  border-bottom: 1px solid var(--background);
+
+  &:last-of-type {
+    border: none;
+  }
+}

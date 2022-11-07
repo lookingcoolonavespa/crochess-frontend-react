@@ -1,0 +1,245 @@
+@use './mixins';
+@use './variables';
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../public/fonts/Montserrat-VariableFont_wght.ttf')
+      format('truetype supports variations'),
+    url('../public/fonts/Montserrat-VariableFont_wght.ttf')
+      format('truetype-variations');
+  // url('../public/fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-stretch: 25% 151%;
+}
+
+@font-face {
+  font-family: 'Hubballi';
+  src: url('../public/fonts/Hubballi-Regular.ttf') format('truetype');
+}
+
+:root[color-mode='light'] {
+  @include mixins.getThemeColors(variables.$colors-light);
+  --box-shadow: 5px 0 10px rgb(220, 220, 220), -5px 0 10px rgb(220, 220, 220),
+    0 5px 10px rgb(210, 210, 210);
+  --sm-box-shadow: 3px 0 10px rgb(220, 220, 220), -3px 0 10px rgb(220, 220, 220),
+    0 3px 10px rgb(210, 210, 210);
+  --side-bottom-box-shadow: 3px 3px 10px rgb(220, 220, 220),
+    -3px 3px 10px rgb(220, 220, 220);
+  --bottom-box-shadow: 0 10px 10px -10px rgb(169, 169, 169);
+}
+:root[color-mode='dark'] {
+  --background: rgb(225, 225, 225);
+  --foreground: rgb(250, 250, 250);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  color: var(--text-primary);
+}
+
+html,
+body,
+#__next,
+#active-game {
+  height: 100%;
+  width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Montserrat';
+}
+
+button,
+input[type='submit'],
+input[type='text'],
+input[type='number'] {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  outline: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outline {
+  border: 1px solid var(--border-primary);
+}
+
+.two-section-view {
+  @include mixins.flexCenter(row);
+
+  > * {
+    flex: 1 1 auto;
+  }
+}
+.two-section-view:not(:first-child) {
+  margin-top: 50px;
+}
+
+.space-evenly {
+  display: flex;
+  justify-content: space-evenly;
+}
+.space-evenly > * {
+  flex: 1 1 0;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.max-width-700 {
+  max-width: 700px;
+}
+
+.hover-highlight {
+  transition: all 0.3s ease-out;
+
+  &:not(.no-hover):hover {
+    background-color: rgba(var(--RGB_action-primary), 0.8);
+    cursor: pointer;
+  }
+}
+
+.hover-lighten {
+  transition: all 0.3s ease-out;
+
+  &:hover {
+    filter: brightness(1.2);
+    cursor: pointer;
+  }
+}
+
+.foreground {
+  background-color: var(--foreground);
+}
+
+.passive {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.sm-loader {
+  width: 24px;
+  height: 24px;
+
+  @include mixins.loader();
+}
+
+.sm-box-shadow {
+  box-shadow: var(--sm-box-shadow);
+}
+
+.label {
+  font-weight: 600;
+}
+
+.icon-btn {
+  @include mixins.flexCenter(row);
+
+  transition: all 0.1s ease-out;
+  color: var(--text-primary);
+
+  img {
+    filter: var(--filter-text-primary);
+  }
+
+  &:hover {
+    color: var(--foreground);
+
+    img {
+      filter: var(--filter-foreground);
+    }
+  }
+}
+
+.inactive {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+}
+
+.scroller {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  overflow: auto;
+}
+
+.modal {
+  @include mixins.flexCenter(row);
+
+  background-color: rgba(0, 0, 0, 0.3);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 99;
+}
+
+.background-action-secondary {
+  background-color: var(--action-secondary);
+}
+
+.no_events {
+  cursor: default;
+  pointer-events: none;
+}
+
+@media screen and (max-width: 568px) {
+  h3 {
+    font-size: 20px;
+  }
+
+  p,
+  li,
+  span {
+    font-size: 14px;
+  }
+}

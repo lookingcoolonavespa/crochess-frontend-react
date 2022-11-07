@@ -1,0 +1,50 @@
+@use './mixins';
+
+.main {
+  background-color: var(--background);
+  position: relative;
+}
+
+.controls-ctn {
+  display: flex;
+  box-shadow: var(--bottom-box-shadow);
+  position: relative;
+
+  > :global(.icon-btn) {
+    flex: 1 1 auto;
+    padding: 1em;
+    img {
+      height: 18px !important;
+      width: 18px !important;
+    }
+  }
+}
+
+.list_item {
+  display: flex;
+}
+
+.moves_ctn {
+  background-color: var(--foreground);
+  height: 150px;
+  overflow: auto;
+}
+
+.move_no {
+  background-color: var(--background);
+  padding: 5px 15px;
+  z-index: 2;
+  width: 40px;
+}
+
+.moves_wrapper {
+  padding: 5px 0;
+  display: flex;
+  column-gap: 10px;
+  flex: 1 1 auto;
+
+  > * {
+    flex: 1 1 auto;
+    padding: 0 10px;
+  }
+}

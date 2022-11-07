@@ -1,0 +1,38 @@
+.main {
+  border-radius: 3px;
+  padding: 2px 16px;
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  transition: background-color 0.17s ease, color 0.17s ease;
+
+  &.filled {
+    background-color: var(--action-primary);
+  }
+  &.filled:hover {
+    background-color: var(--action-primary-hover);
+  }
+  &:hover .underline-hover {
+    text-decoration: underline;
+  }
+
+  &.hollow {
+    color: var(--action-primary);
+    border: 1px solid var(--action-primary);
+  }
+
+  &.small {
+    height: 38px;
+    min-width: 78px;
+    min-height: 38px;
+  }
+  &.medium {
+    height: 38px;
+    min-width: 96px;
+    min-height: 38px;
+  }
+}

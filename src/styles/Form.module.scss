@@ -1,0 +1,82 @@
+@use './mixins';
+
+$colorBoxSize: 40px;
+
+.main {
+  :global(.form-group) {
+    margin-bottom: 20px;
+  }
+
+  :global(#color) {
+    :global(.label) {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    :global(.radio-ctn) {
+      @include mixins.flexCenter(row);
+
+      column-gap: 20px;
+    }
+
+    :global(.radio-wrapper input) {
+      width: $colorBoxSize;
+      height: $colorBoxSize;
+
+      &:after {
+        @include mixins.circle($colorBoxSize);
+      }
+
+      &:checked:after {
+        border-color: var(--action-secondary);
+      }
+
+      &:global(#color1) {
+        &:before {
+          @include mixins.circle($colorBoxSize, 'left');
+        }
+        &:after {
+          @include mixins.circle($colorBoxSize, 'right');
+          left: $colorBoxSize/2;
+        }
+
+        &:checked:after,
+        &:checked:before {
+          border-color: var(--action-secondary);
+        }
+      }
+
+      &:global(#color0):after {
+        background-color: black;
+      }
+      &:global(#color1):before {
+        background-color: white;
+      }
+      &:global(#color1):after {
+        background-color: black;
+      }
+      &:global(#color2):after {
+        background-color: white;
+      }
+    }
+  }
+
+  :global(.radio-wrapper input) {
+    position: relative;
+    appearance: none;
+    border: 0;
+    outline: 0;
+    cursor: pointer;
+  }
+}
+
+.with_units {
+  display: flex;
+  column-gap: 10px;
+}
+
+.btn-ctn {
+  @include mixins.flexCenter(row);
+
+  column-gap: 20px;
+}

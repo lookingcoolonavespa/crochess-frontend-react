@@ -1,0 +1,45 @@
+@use './mixins';
+
+$grid_gap: 10px;
+
+.main {
+  display: grid;
+  column-gap: $grid_gap;
+  row-gap: $grid_gap;
+  grid-template-columns: repeat(3, 1fr);
+  border-radius: 3px;
+}
+
+.tc-btn {
+  @include mixins.flexCenter(column);
+  border-radius: 5px;
+  height: 130px;
+
+  :global(.title) {
+    font-weight: 400;
+    font-size: 33px;
+    margin: 0;
+    margin: 10px 0;
+  }
+
+  :global(.caption) {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 300;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .tc-btn {
+    height: 130px;
+
+    :global(.title) {
+      font-size: 25px;
+      margin: 10px 0;
+    }
+
+    :global(.caption) {
+      font-size: 14px;
+    }
+  }
+}

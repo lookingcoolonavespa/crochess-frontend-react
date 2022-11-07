@@ -1,0 +1,72 @@
+@use './mixins';
+
+$timer-height: 50px;
+
+.main {
+  position: absolute;
+  left: 100%;
+  margin-left: 50px;
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--foreground);
+  box-shadow: var(--box-shadow);
+  z-index: 3;
+}
+
+.main_controls {
+  @include mixins.flexCenter(row);
+
+  :global(.icon-btn) {
+    flex: 1 1 0;
+    padding: 1em 1.5em;
+    align-self: stretch;
+  }
+}
+
+.timer {
+  @include mixins.flexCenter(row);
+
+  position: absolute;
+  left: 0;
+  height: 50px;
+  width: 50%;
+  overflow: hidden;
+  font-family: 'Hubballi';
+  font-size: 40px;
+  background-color: var(--foreground);
+  border-radius: 5px;
+
+  &:global(.active) {
+    background-color: hsl(86, 70%, 88%);
+  }
+}
+.top {
+  top: -$timer-height;
+}
+.bottom {
+  bottom: -$timer-height;
+}
+
+.game_over_display {
+  position: absolute;
+  background-color: var(--foreground);
+  z-index: 5;
+  bottom: 0;
+  height: 120px;
+  width: 100%;
+  @include mixins.flexCenter(column);
+
+  :global(.close-btn) {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+  }
+
+  p:first-of-type {
+    margin-bottom: 10px;
+  }
+}
+
+.btn_ctn {
+  display: flex;
+}

@@ -1,0 +1,99 @@
+@use './mixins';
+
+.main {
+  @include mixins.flexCenter(row);
+  height: 100%;
+}
+
+.tabbed-content {
+  @include mixins.flexCenter(column);
+
+  position: relative;
+  align-items: stretch;
+  max-width: 700px;
+  width: 80%;
+  box-shadow: var(--box-shadow);
+  background-color: var(--foreground);
+  border-radius: 5px;
+  border-top-left-radius: 0;
+}
+
+.tabs {
+  position: absolute;
+  bottom: 100%;
+
+  ul {
+    @include mixins.flexCenter(row);
+    justify-content: flex-start;
+
+    li {
+      @include mixins.flexCenter(row);
+      position: relative;
+      top: 0.5em;
+      height: 100%;
+      z-index: 2;
+      border-top-left-radius: 5px;
+      cursor: pointer;
+      padding: 1.5em 1.5em 1em;
+      width: 200px;
+      transition: all 0.3s ease-out;
+
+      &.inactive {
+        z-index: 1;
+      }
+
+      &:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0.5em;
+        left: 0;
+        z-index: -1;
+        border-bottom: none;
+        border-radius: 10px 10px 0 0;
+
+        background-color: var(--foreground);
+        transform: perspective(7px) rotateX(2deg);
+        transform-origin: bottom left;
+      }
+      &.inactive:before {
+        background-color: #c1c1c1;
+      }
+      &.inactive:hover:before {
+        filter: brightness(1.1);
+      }
+
+      &:not(first-of-type) {
+        margin-right: -25px;
+      }
+
+      span {
+        z-index: 3;
+        position: relative;
+        margin-right: 20px;
+      }
+    }
+  }
+}
+
+.content {
+  position: relative;
+  padding: 10px;
+  height: 570px;
+}
+
+@media screen and (max-width: 568px) {
+  .tabbed-content {
+    width: 100%;
+  }
+  .tabs {
+    width: 100%;
+
+    ul {
+      li {
+        font-size: 14px;
+      }
+    }
+  }
+}

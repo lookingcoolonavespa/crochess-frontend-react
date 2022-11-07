@@ -1,0 +1,39 @@
+@use './mixins';
+
+$breakpoints: (
+  1200px: 200px,
+);
+
+$title-width: 400px;
+
+.main {
+  @include mixins.flexCenter(column);
+
+  .title {
+    max-width: $title-width;
+    @include mixins.flexCenter(row);
+    flex: 1 1 100px;
+    font-weight: 400;
+    font-size: 20px;
+  }
+
+  .content {
+    max-width: 700px;
+    width: 80%;
+  }
+}
+
+.text-wrapper {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(var(--RGB_text-primary), 0.3);
+}
+
+@each $width, $maxWidth in $breakpoints {
+  @media screen and (max-width: $width) {
+    .main {
+      .title {
+        max-width: $maxWidth;
+      }
+    }
+  }
+}

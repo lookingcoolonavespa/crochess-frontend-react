@@ -1,0 +1,20 @@
+.main {
+  padding: 7px 0;
+}
+
+.main {
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.main:last-of-type {
+  border-radius: 0 0 3px 3px;
+}
+
+.my_seek {
+  background-color: var(--action-primary);
+  user-select: none;
+  opacity: 0.5;
+}
+.my_seek:hover {
+  cursor: default !important;
+}
