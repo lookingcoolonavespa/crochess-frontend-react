@@ -6,14 +6,17 @@ import {
   MoveNotationList,
   AllPieceMap,
   FenStr,
+  SquareIdx,
 } from 'crochess-api/dist/types/types';
 import {
   GameType,
   ClaimDrawRecord,
   TimeDetails,
   GameOverDetails,
+  Optional,
 } from './types';
 import { Dispatch, SetStateAction, HTMLInputTypeAttribute } from 'react';
+import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 
 export interface GameSeekInterface {
   color: Colors | 'random';
@@ -39,20 +42,14 @@ export interface ControlBtnObj {
   className?: string;
 }
 
-interface Player {
-  player: string;
-  timeLeft: number;
-}
-export interface ActiveGameInterface {
-  w: Player;
-  b: Player;
-  // board: Board;
-  // scoreSheet: string[];
-  time: number;
-  increment: number;
-  turn: Colors;
-  turnStart: number;
-}
+// export interface ActiveGameInterface {
+//   w: Player;
+//   b: Player;
+//   time: number;
+//   increment: number;
+//   turn: Colors;
+//   turnStart: number;
+// }
 
 export interface FormProps {
   fields: FieldsInterface[];
@@ -87,105 +84,48 @@ export interface FieldsInterface {
   };
 }
 
-export interface GameState {
-  time: Record<Colors, number>;
-  turn: Colors;
-  fen: FenStr;
+export interface GameState extends Omit<FenState, 'halfmoves' | 'fullmoves'> {
+  time: Record<Colors, number | null>;
   claimDrawRecord: ClaimDrawRecord;
-  gameOver: GameOverDetails;
+  gameOverDetails: GameOverDetails;
   moveList: MoveNotationList;
 }
 
-export interface GameInterface {
-  w: Player;
-  b: Player;
-  board: Board;
-  checks: Square[];
-  castle: Record<Colors, CastleRights>;
-  history: MoveNotationList;
+export interface FetchedState<
+  T extends true | false,
+  S extends number | undefined
+> {
+  turnStart: S;
+  active: T;
+  fen: FenStr;
+  moveList: MoveNotationList;
+  wTime: number;
+  bTime: number;
+}
+
+export interface FetchedGameInterface {
+  wId: string;
+  bId: string;
+  history: FenStr[];
   time: number;
   increment: number;
-  turn: Colors;
-  turnStart?: number;
-  active: boolean;
+  state: FetchedState<true | false, number | undefined>;
   winner: Colors | null;
   causeOfDeath: string;
-  claimDraw: ClaimDrawRecord;
+  claimDrawRecord: ClaimDrawRecord;
 }
 
-export interface FetchGameStateUpdaters {
-  setGameOverDetails: React.Dispatch<
-    React.SetStateAction<
-      | {
-          winner: Colors | null;
-          reason: string;
-        }
-      | undefined
-    >
-  >;
-
-  setGameboardView: React.Dispatch<React.SetStateAction<Colors>>;
-  setBoardState: React.Dispatch<
-    React.SetStateAction<{
-      board: Board;
-      checks: Square[];
-      castleRights: Record<Colors, CastleRights>;
-    }>
-  >;
-  setMoveHistory: React.Dispatch<React.SetStateAction<string[][]>>;
-  setWhiteTime: React.Dispatch<React.SetStateAction<number>>;
-  setBlackTime: React.Dispatch<React.SetStateAction<number>>;
-  setCurrentPieceMapIdx: React.Dispatch<React.SetStateAction<number>>;
-  setClaimDrawRecord: React.Dispatch<React.SetStateAction<ClaimDrawRecord>>;
-  setTurn: React.Dispatch<React.SetStateAction<Colors>>;
+interface GameOver extends FetchedState<false, number> {
+  gameOverDetails: Exclude<GameOverDetails, null>;
+  claimDrawRecord?: ClaimDrawRecord;
 }
-
-export interface FetchGameGameDetails {
-  timeDetails: TimeDetails;
-  activePlayerRef: React.MutableRefObject<Colors | null>;
-  maxTimeRef: React.MutableRefObject<number>;
+interface GameActive extends FetchedState<true, number> {
+  wTime: number;
+  bTime: number;
+  gameOverDetails?: null;
+  claimDrawRecord?: ClaimDrawRecord;
 }
-
-export interface UpdateGameGameDetails {
-  timeDetailsRef: React.MutableRefObject<{
-    white: {
-      startTime: number;
-      turnStart: number;
-    };
-    black: {
-      startTime: number;
-      turnStart: number;
-    };
-    maxTime: number;
-  }>;
-  pieceMapsRef: React.MutableRefObject<AllPieceMap[]>;
-}
-
-export interface UpdateGameStateUpdaters {
-  setGameOverDetails: React.Dispatch<
-    React.SetStateAction<
-      | {
-          winner: Colors | null;
-          reason: string;
-        }
-      | undefined
-    >
-  >;
-  setBoardState: React.Dispatch<
-    React.SetStateAction<{
-      board: Board;
-      checks: Square[];
-      castleRights: Record<Colors, CastleRights>;
-    }>
-  >;
-  setMoveHistory: React.Dispatch<React.SetStateAction<string[][]>>;
-  setWhiteTime: React.Dispatch<React.SetStateAction<number>>;
-  setBlackTime: React.Dispatch<React.SetStateAction<number>>;
-  setCurrentPieceMapIdx: React.Dispatch<React.SetStateAction<number>>;
-  setClaimDrawRecord: React.Dispatch<React.SetStateAction<ClaimDrawRecord>>;
-  setTurn: React.Dispatch<React.SetStateAction<Colors>>;
-}
-
+export type UpdatedGameInterface = GameActive | GameOver;
 export interface GameStatusInterface {
   type:
     | 'gameOver'
@@ -193,6 +133,6 @@ export interface GameStatusInterface {
     | 'claimDraw'
     | 'offerDrawConfirmation'
     | 'resignConfirmation';
-  payload: GameOverDetailsInterface | undefined;
+  payload: GameOverDetails | undefined;
   close: (() => void) | undefined;
 }

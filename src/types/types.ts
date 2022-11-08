@@ -11,12 +11,6 @@ export type GameType = 'blitz' | 'bullet' | 'rapid' | 'classical';
 
 export type ColorOptions = Colors | 'random';
 
-export type PiecePos = {
-  piece: PieceType;
-  square: Square;
-  color: Colors;
-};
-
 export type ClaimDrawRecord = Record<Colors, boolean>;
 
 export type GameOverDetails = {
@@ -27,22 +21,17 @@ export type GameOverDetails = {
 export type TimeDetails = Record<
   Colors,
   {
-    timeAtTurnStart: number;
+    timeLeftAtTurnStart: number;
     stampAtTurnStart: number;
   }
 >;
 
+export type AllTimes = Record<Colors, number>;
+
 export type ReducerActions =
   | {
       type: 'update on load/move';
-      payload: {
-        fen: FenStr;
-        turn: Colors;
-        claimDrawRecord: ClaimDrawRecord;
-        moveList: MoveNotationList;
-        time: Record<Colors, number>;
-        gameOver: GameOverDetails;
-      };
+      payload: GameState;
     }
   | {
       type: 'update time';
@@ -51,4 +40,5 @@ export type ReducerActions =
         time: number;
       };
     };
-export type GameStateReducer = (s: GameState, a: ReducerActions) => GameState;
+
+export type Optional<T, K extends keyof T> = Partial<Pick<T, K>> & Omit<T, K>;

@@ -1,46 +1,51 @@
-import { Moves, Square } from 'crochess-api/dist/types/types';
+import {
+  PromotePieceType,
+  Square,
+  Colors,
+  Board,
+  SquareIdx,
+  PieceType,
+} from 'crochess-api/dist/types/types';
+import { isPromote } from 'crochess-api/dist/utils/getLegalMoves';
+import { convertIdxToSquare } from 'crochess-api/dist/utils/square';
 
-import React, { useState, MouseEvent } from 'react';
+import React, { useState } from 'react';
 import styles from '../../styles/Gameboard.module.scss';
-import { PiecePos } from '../../types/types';
 import Piece from './Piece';
 import Promotion from './Promotion';
 
 const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const rows = [1, 2, 3, 4, 5, 6, 7, 8];
-const squares: string[] = cols.reduce((acc: string[], curr) => {
-  rows.forEach((r) => acc.push(curr + r));
+const squares: Square[] = cols.reduce((acc: Square[], curr) => {
+  rows.forEach((r) => acc.push((curr + r) as Square));
   return acc;
 }, []);
 
 interface GameboardProps {
   view: Colors;
-  piecePos: PiecePos[];
-  makeMove: (square: Square) => void;
+  board: Board;
+  makeMove: (square: Square, promote?: PromotePieceType) => void;
   pieceToMove: Square | null;
   setPieceToMove: React.Dispatch<React.SetStateAction<Square | null>>;
-  getLegalMoves: (square: Square) => Moves;
+  getLegalMoves: (square: Square) => Square[] | undefined;
   activePlayer: Colors | null;
-  checkPromotion: (square: Square) => boolean;
-  promotePopupSquare: Square | null;
-  setPromotePopupSquare: React.Dispatch<React.SetStateAction<Square | null>>;
-  onPromote: (e: MouseEvent<HTMLDivElement>) => void;
+  validateMove: (square: Square) => boolean;
 }
 
 export default React.memo(function Gameboard({
   view,
-  piecePos,
+  board,
   makeMove,
   pieceToMove,
   setPieceToMove,
   getLegalMoves,
   activePlayer,
-  checkPromotion,
-  promotePopupSquare,
-  setPromotePopupSquare,
-  onPromote,
+  validateMove,
 }: GameboardProps) {
-  const [highlightedSquares, setHighlightedSquares] = useState<Moves>([]);
+  const [highlightedSquares, setHighlightedSquares] = useState<Square[]>([]);
+  const [promotePopupSquare, setPromotePopupSquare] = useState<Square | null>(
+    null
+  );
 
   function resetPieceToMove() {
     setPieceToMove(null);
@@ -53,7 +58,7 @@ export default React.memo(function Gameboard({
 
         // board needs to be flipped for black
         const evenColumn = cols.indexOf(col) % 2 === 0;
-        const startRow = view === 'white' ? row === '1' : row === '8';
+        const startRow = view === 'w' ? row === '1' : row === '8';
         const endCol = col === 'h';
 
         const classNames = [styles.boardSquare];
@@ -78,7 +83,14 @@ export default React.memo(function Gameboard({
             {promotePopupSquare === s && (
               <Promotion
                 onPromote={(e) => {
-                  onPromote(e);
+                  e.stopPropagation();
+                  const pieceSelectNode = e.currentTarget as HTMLElement;
+
+                  makeMove(
+                    promotePopupSquare as Square,
+                    pieceSelectNode.dataset.piece as PromotePieceType
+                  );
+                  setPromotePopupSquare(null);
                   resetPieceToMove();
                 }}
                 square={promotePopupSquare}
@@ -90,42 +102,45 @@ export default React.memo(function Gameboard({
       })}
       {
         // pieces
-        piecePos &&
-          piecePos.map((p, i) => {
-            return (
+        board &&
+          board.reduce<JSX.Element[]>((acc, p, i) => {
+            const square = convertIdxToSquare(i as SquareIdx);
+            if (!p) return acc;
+            acc.push(
               <Piece
                 key={i}
-                color={p.color}
-                square={p.square}
-                type={p.piece}
+                color={p[0] as Colors}
+                square={square}
+                type={p[1] as PieceType}
                 onClick={
                   !promotePopupSquare
                     ? () => {
-                        if (activePlayer !== null && p.color !== activePlayer) {
+                        if (activePlayer !== null && p[0] !== activePlayer) {
                           // if player is not spectator and piece doesnt belong to active player
                           if (!pieceToMove) return; // means its not a capture
 
-                          if (checkPromotion(p.square))
-                            return setPromotePopupSquare(p.square);
+                          if (validateMove(square) && isPromote(p, square))
+                            return setPromotePopupSquare(square);
 
                           resetPieceToMove();
-                          makeMove(p.square);
+                          makeMove(square);
                           return;
                         }
 
-                        if (p.square === pieceToMove) {
+                        if (square === pieceToMove) {
                           resetPieceToMove();
                         } else {
                           // display legal moves
-                          setPieceToMove(p.square);
-                          setHighlightedSquares(getLegalMoves(p.square));
+                          setPieceToMove(square);
+                          setHighlightedSquares(getLegalMoves(square) || []);
                         }
                       }
                     : undefined
                 }
               />
             );
-          })
+            return acc;
+          }, [])
       }
     </div>
   );

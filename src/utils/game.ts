@@ -1,7 +1,7 @@
 import { GameType } from '../types/types';
 import axios from 'axios';
 import { GameSeekInterface } from '../types/interfaces';
-import { PieceType, Square, Colors } from 'crochess-api';
+import { PieceType, Square, Colors } from 'crochess-api/dist/types/types';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import { getRdmColor } from './misc';
 
