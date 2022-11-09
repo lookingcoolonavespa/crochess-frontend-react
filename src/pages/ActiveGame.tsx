@@ -6,10 +6,9 @@ import {
   useMemo,
   useReducer,
   Reducer,
-  MouseEvent,
 } from 'react';
 import Gameboard from '../components/Game/Gameboard';
-import Interface from '../components/Game/Interface';
+import Interface from '../components/Game/Interface/Interface';
 import { io } from 'socket.io-client';
 import {
   convertIdxToSquare,
@@ -19,19 +18,16 @@ import { convertFromFen } from 'crochess-api/dist/utils/fen';
 import { isFenStr } from 'crochess-api/dist/utils/typeCheck';
 
 import {
-  CastleRights,
   Colors,
   Board,
-  PieceType,
   Square,
-  SquareIdx,
   MoveNotationList,
   FenStr,
   Enumerate,
   AllPieceMap,
   PromotePieceType,
 } from 'crochess-api/dist/types/types';
-import { convertPieceMapToArray, parseCookies } from '../utils/misc';
+import { parseCookies } from '../utils/misc';
 import styles from '../styles/ActiveGame.module.scss';
 import { fetchGame, sendMove } from '../utils/game';
 import {
@@ -40,9 +36,8 @@ import {
   UpdatedGameInterface,
 } from '../types/interfaces';
 import { ReducerActions, AllTimes } from '../types/types';
-import { formatTime } from '../utils/timerStuff';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
-import { ClaimDrawRecord, GameOverDetails, TimeDetails } from '../types/types';
+import { TimeDetails } from '../types/types';
 import { getActivePlayer } from '../utils/misc';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 import getLegalMoves, {
@@ -50,6 +45,7 @@ import getLegalMoves, {
   isPromote,
 } from 'crochess-api/dist/utils/getLegalMoves';
 import { buildPieceMap, getEmptyPieceMap } from 'crochess-api/dist/utils/board';
+import { useParams } from 'react-router-dom';
 
 export default function ActiveGame() {
   const mounted = useRef(false);
@@ -114,8 +110,7 @@ export default function ActiveGame() {
     useState<Enumerate<typeof historyRef.current.length>>(0);
   const [pieceToMove, setPieceToMove] = useState<Square | null>(null);
 
-  const router = useRouter();
-  const { activeGameId: gameId } = router.query;
+  const { gameId } = useParams();
 
   useEffect(function setMounted() {
     mounted.current = true;
@@ -353,7 +348,7 @@ export default function ActiveGame() {
     [gameId, validateMove, checkPromotion, pieceToMove, historyIdx]
   );
 
-  const historyControls = useMemo(() => {
+  const moveListControls = useMemo(() => {
     return {
       goBackToStart: () => {
         if (!historyRef.current.length) return;
@@ -421,6 +416,7 @@ export default function ActiveGame() {
           whiteDetails={{
             maxTime: maxTimeRef.current,
             timeStampAtStart: timeDetailsRef.current.w.stampAtTurnStart,
+            timeLeftAtStart: timeDetailsRef.current.w.timeLeftAtTurnStart,
             time: gameState.time.w,
             setTime: (time: number) => updateTime('w', time),
             active: !gameState.gameOverDetails && gameState.activeColor === 'w',
@@ -428,13 +424,13 @@ export default function ActiveGame() {
           blackDetails={{
             maxTime: maxTimeRef.current,
             timeStampAtStart: timeDetailsRef.current.b.stampAtTurnStart,
+            timeLeftAtStart: timeDetailsRef.current.b.timeLeftAtTurnStart,
             time: gameState.time.b,
             setTime: (time: number) => updateTime('b', time),
             active: !gameState.gameOverDetails && gameState.activeColor === 'b',
           }}
-          turnStart={timeDetailsRef.current[turn].turnStart}
-          history={moveHistory}
-          historyControls={historyControls}
+          moveList={gameState.moveList}
+          moveListControls={moveListControls}
           view={gameboardView}
           flipBoard={flipBoard}
         />

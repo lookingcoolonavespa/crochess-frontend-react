@@ -13,9 +13,10 @@ import useInputValues from '../utils/hooks/useInputValues';
 import { createGameSeek } from '../utils/game';
 import Modal from '../components/Modal';
 import { toMilliseconds } from '../utils/timerStuff';
-import { getGameType, getOppColor } from '../utils/misc';
+import { getGameType } from '../utils/misc';
+import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 
-const Home: React.FC = () => {
+const Home = () => {
   const [user, setUser] = useState('');
   const [popup, setPopup] = useState(false);
   const [error, setError] = useState('');
@@ -24,10 +25,16 @@ const Home: React.FC = () => {
     handleInputChange,
     handleSelectChange,
     resetInputValues,
-  } = useInputValues({
+  } = useInputValues<{
+    increment: number;
+    time_unit: 'seconds' | 'minutes' | 'hours';
+    color: 'w' | 'b' | 'random';
+    time: number;
+  }>({
     increment: 0,
     time_unit: 'minutes',
     color: 'random',
+    time: 5,
   });
   const [activeTab, setActiveTab] = useState('Create a game');
 
@@ -145,7 +152,9 @@ const Home: React.FC = () => {
                   createGameSeek(
                     gameTime,
                     popupInputValues.increment as number,
-                    getOppColor(popupInputValues.color as Colors),
+                    popupInputValues.color === 'random'
+                      ? 'random'
+                      : OPP_COLOR[popupInputValues.color],
                     user,
                     getGameType(gameTime)
                   );

@@ -1,7 +1,4 @@
-import { Gameboard, Colors } from 'crochess-api';
-import { AllPieceMap } from 'crochess-api/dist/types/interfaces';
-import { Board, HistoryType } from 'crochess-api/dist/types/types';
-import { PiecePos } from '../types/types';
+import { Colors } from 'crochess-api/dist/types/types';
 import { toMilliseconds } from './timerStuff';
 
 export function createControlBtnObj(
@@ -21,31 +18,6 @@ export function getKeyByValue(
   val: any
 ) {
   return Object.keys(obj).find((key) => obj[key] === val);
-}
-
-export function convertPieceMapToArray(pieceMap: AllPieceMap) {
-  let array: PiecePos[] = [];
-
-  let color: keyof typeof pieceMap;
-  for (color in pieceMap) {
-    const map = pieceMap[color];
-
-    let piece: keyof typeof map;
-    for (piece in map) {
-      const squares = map[piece];
-      squares.forEach((s) => {
-        const piecePos = {
-          color,
-          piece,
-          square: s,
-        };
-
-        array.push(piecePos);
-      });
-    }
-  }
-
-  return array;
 }
 
 export function setIdToCookie(gameId: string, color: Colors, id: string) {

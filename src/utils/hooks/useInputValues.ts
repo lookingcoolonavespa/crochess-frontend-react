@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-export default function useInputValues(init?: {
-  [key: string]: string | number;
-}) {
-  const [inputValues, setInputValues] = useState<{
+export default function useInputValues<
+  T extends {
     [key: string]: string | number;
-  }>(init || {});
+  }
+>(init?: T) {
+  const [inputValues, setInputValues] = useState<T>(init || ({} as T));
 
   function handleInputChange(e: React.FormEvent<HTMLInputElement>) {
     const { name, value } = e.currentTarget;
@@ -25,7 +25,7 @@ export default function useInputValues(init?: {
   }
 
   function resetInputValues() {
-    setInputValues(init || {});
+    setInputValues(init || ({} as T));
   }
 
   return {

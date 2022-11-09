@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
-import { io, Socket } from 'socket.io-client';
+import { useState, useEffect, useRef } from 'react';
+import { redirect } from 'react-router-dom';
+import { Socket } from 'socket.io-client';
 import { GameSeekInterface } from '../../types/interfaces';
 import axios from 'axios';
 import { setIdToCookie } from '../misc';
 
 export default function useListOfGames(socket: Socket) {
-  const router = useRouter();
   const [listOfGames, setListOfGames] = useState<GameSeekInterface[]>([]);
 
   const mounted = useRef(false);
@@ -56,7 +55,7 @@ export default function useListOfGames(socket: Socket) {
       socket.on('startGame', (data) => {
         sessionStorage.setItem(data.gameId, socket.id); // used to identify user once they move into a game, useful for if they refresh or disconnect
         setIdToCookie(data.gameId, data.color, data.cookieId);
-        router.push(`/${data.gameId}`);
+        redirect(`/${data.gameId}`);
       });
 
       socket.on('deletedGameSeek', (d) => {
@@ -64,7 +63,7 @@ export default function useListOfGames(socket: Socket) {
           setListOfGames((prev) => prev.filter((g) => g._id !== d._id));
       });
     },
-    [socket, router]
+    [socket]
   );
 
   return { listOfGames };

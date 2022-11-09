@@ -11,7 +11,7 @@ import RookW from '../../public/icons/chess_pieces/rook-w.svg';
 import BishopW from '../../public/icons/chess_pieces/bishop-w.svg';
 import KnightW from '../../public/icons/chess_pieces/knight-w.svg';
 import PawnW from '../../public/icons/chess_pieces/pawn-w.svg';
-import { Colors, PieceType, Square } from 'crochess-api';
+import { Colors, PieceType, Square } from 'crochess-api/dist/types/types';
 
 const piecesSVG = {
   w: {

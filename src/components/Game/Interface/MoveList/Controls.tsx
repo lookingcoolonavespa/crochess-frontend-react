@@ -1,7 +1,7 @@
 import React from 'react';
 
-import IconBtn from '../IconBtn';
-import { ControlBtnObj } from '../../types/interfaces';
+import IconBtn from '../../../IconBtn';
+import { ControlBtnObj } from '../../../../types/interfaces';
 
 interface ControlsProps {
   className?: string;

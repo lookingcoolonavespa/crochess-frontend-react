@@ -1,20 +1,21 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { MemoizedControls } from './Controls';
-import Timer from './Timer';
-import { MemoizedHistory } from './History';
+import { MemoizedControls } from './MoveList/Controls';
+import Timer, { TimerProps } from './Timer';
+import { MemoizedMoveList } from './MoveList/MoveList';
 import styles from '../../styles/GameInterface.module.scss';
-import { createControlBtnObj } from '../../utils/misc';
+import { createControlBtnObj } from '../../../utils/misc';
 import flagIcon from '../../public/icons/flag-fill.svg';
 import TimerBar from './TimerBar';
-import { MemoizedGameStatusDisplay } from './GameStatusDisplay';
-import { GameOverDetails } from '../../types/interfaces';
+import { MemoizedGameStatusDisplay } from '../GameStatusDisplay';
+import { GameOverDetails } from '../../../types/types';
+import { Colors, MoveNotationList } from 'crochess-api/dist/types/types';
 
 interface InterfaceProps {
   activePlayer: Colors | null;
-  whiteDetails: colorDetails;
-  blackDetails: colorDetails;
-  history: string[][];
-  historyControls: {
+  whiteDetails: TimeDetails;
+  blackDetails: TimeDetails;
+  moveList: MoveNotationList;
+  moveListControls: {
     goBackToStart: () => void;
     goBackOneMove: () => void;
     goForwardOneMove: () => void;
@@ -22,18 +23,13 @@ interface InterfaceProps {
   };
   view: Colors;
   flipBoard: () => void;
-  turnStart: number;
-  gameOverDetails?: GameOverDetailsInterface;
+  gameOverDetails?: GameOverDetails;
   offeredDraw: boolean;
   claimDraw: boolean;
 }
 
-interface colorDetails {
+interface TimeDetails extends Omit<TimerProps, 'className'> {
   maxTime: number;
-  startTime: number;
-  time: number;
-  setTime: React.Dispatch<React.SetStateAction<number>>;
-  active: boolean;
 }
 
 export default function Interface({
@@ -42,9 +38,8 @@ export default function Interface({
   blackDetails,
   view,
   flipBoard,
-  turnStart,
-  history,
-  historyControls,
+  moveList,
+  moveListControls,
   gameOverDetails,
   offeredDraw,
   claimDraw,
@@ -56,7 +51,7 @@ export default function Interface({
       | 'claimDraw'
       | 'offerDrawConfirmation'
       | 'resignConfirmation';
-    payload: GameOverDetailsInterface | undefined;
+    payload: GameOverDetails | undefined;
     close: (() => void) | undefined;
   }>();
   const [resignConfirmation, setResignConfirmation] = useState(false);
@@ -103,8 +98,6 @@ export default function Interface({
       case 'offerDrawConfirmation':
         close = cancelDraw;
         break;
-      default:
-        undefined;
     }
 
     setStatus({
@@ -123,8 +116,8 @@ export default function Interface({
 
   useEffect(() => {});
 
-  const topTimer = view === 'white' ? blackDetails : whiteDetails;
-  const bottomTimer = view === 'white' ? whiteDetails : blackDetails;
+  const topTimer = view === 'w' ? blackDetails : whiteDetails;
+  const bottomTimer = view === 'w' ? whiteDetails : blackDetails;
 
   function resign() {
     setResignConfirmation(true);
@@ -156,11 +149,7 @@ export default function Interface({
 
   return (
     <div className={styles.main}>
-      <Timer
-        className={`${styles.timer} ${styles.top}`}
-        turnStart={turnStart}
-        {...topTimer}
-      />
+      <Timer className={`${styles.timer} ${styles.top}`} {...topTimer} />
       <TimerBar maxTime={topTimer.maxTime} time={topTimer.time} />
       <div>
         {status && (
@@ -171,10 +160,10 @@ export default function Interface({
             activePlayer={activePlayer as Colors}
           />
         )}
-        <MemoizedHistory
-          moves={history}
+        <MemoizedMoveList
+          moveList={moveList}
           flipBoard={flipBoard}
-          historyControls={historyControls}
+          controls={moveListControls}
         />
       </div>
       {activePlayer && !gameOverDetails && (
@@ -184,11 +173,7 @@ export default function Interface({
         />
       )}
       <TimerBar maxTime={bottomTimer.maxTime} time={bottomTimer.time} />
-      <Timer
-        className={`${styles.timer} ${styles.bottom}`}
-        turnStart={turnStart}
-        {...bottomTimer}
-      />
+      <Timer className={`${styles.timer} ${styles.bottom}`} {...bottomTimer} />
     </div>
   );
 }

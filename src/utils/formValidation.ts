@@ -23,6 +23,7 @@ export function dynamicValidation(el: HTMLInputElement) {
       if (val !== 'black' && val !== 'white') {
         return { error: 'not a valid color' };
       }
+      break;
     }
 
     default:

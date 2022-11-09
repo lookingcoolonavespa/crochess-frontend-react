@@ -31,23 +31,4 @@ export function formatTime(ms: number) {
   }
 }
 
-// const timerFactory = function () {
-//   let expected, interval, timeout;
-
-//   function step() {
-//     const drift = Date.now() - expected;
-//     if (drift > interval) {
-//     }
-//     workFunc();
-//     expected += interval;
-//     timeout = setTimeout(step, Math.max(0, interval - drift));
-//   }
-
-//   function start() {}
-
-//   function stop() {
-//     clearTimeout(timeout);
-//   }
-// };
-
 export { dayjs };

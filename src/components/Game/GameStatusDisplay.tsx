@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import React from 'react';
 
 import closeSVG from '../../public/icons/close-line.svg';
@@ -9,6 +8,8 @@ import FlatBtn from '../FlatBtn';
 import { resign, claimDraw, offerDraw, denyDraw } from '../../utils/game';
 import { SetStateAction } from 'react';
 import { parseCookies } from '../../utils/misc';
+import { Colors } from 'crochess-api/dist/types/types';
+import { useParams } from 'react-router-dom';
 
 interface GameStatusDisplayProps {
   styles: { [key: string]: string };
@@ -47,8 +48,7 @@ export default function GameStatusDisplay({
   status,
   activePlayer,
 }: GameStatusDisplayProps) {
-  const router = useRouter();
-  const { activeGameId: gameId } = router.query;
+  const { gameId } = useParams();
 
   const playerId = parseCookies(document.cookie)[`${gameId}(${activePlayer})`];
 

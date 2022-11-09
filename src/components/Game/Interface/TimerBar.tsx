@@ -1,10 +1,10 @@
 interface TimerBarProps {
-  time: number;
+  time: number | null;
   maxTime: number;
 }
 
 export default function TimerBar({ time, maxTime }: TimerBarProps) {
-  let timeLeft = (time / maxTime) * 100;
+  let timeLeft = (time || 0 / maxTime) * 100;
   if (isNaN(timeLeft)) timeLeft = 0;
   return (
     <div
