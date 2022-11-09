@@ -3,9 +3,9 @@
 
 @font-face {
   font-family: 'Montserrat';
-  src: url('../public/fonts/Montserrat-VariableFont_wght.ttf')
+  src: url('../fonts/Montserrat-VariableFont_wght.ttf')
       format('truetype supports variations'),
-    url('../public/fonts/Montserrat-VariableFont_wght.ttf')
+    url('../fonts/Montserrat-VariableFont_wght.ttf')
       format('truetype-variations');
   // url('../public/fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 1000;
@@ -14,7 +14,7 @@
 
 @font-face {
   font-family: 'Hubballi';
-  src: url('../public/fonts/Hubballi-Regular.ttf') format('truetype');
+  src: url('../fonts/Hubballi-Regular.ttf') format('truetype');
 }
 
 :root[color-mode='light'] {
@@ -61,6 +61,7 @@ body {
 
 html,
 body,
+#root,
 #__next,
 #active-game {
   height: 100%;

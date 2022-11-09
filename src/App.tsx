@@ -1,6 +1,7 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import ActiveGame from './pages/ActiveGame';
 import Home from './pages/Home';
+import './styles/globals.scss';
 
 export default function App() {
   return (

@@ -45,17 +45,17 @@ export function getActivePlayer(
   const cookieObj = parseCookies(document.cookie);
 
   switch (true) {
-    case cookieObj[`${gameId}(white)`] === whiteId &&
-      cookieObj[`${gameId}(black)`] === blackId: {
+    case cookieObj[`${gameId}(w)`] === whiteId &&
+      cookieObj[`${gameId}(b)`] === blackId: {
       const user = sessionStorage.getItem(gameId);
       if (user === whiteId) return 'w';
       if (user === blackId) return 'b';
       return null;
     }
-    case cookieObj[`${gameId}(white)`] === whiteId: {
+    case cookieObj[`${gameId}(w)`] === whiteId: {
       return 'w';
     }
-    case cookieObj[`${gameId}(black)`] === blackId: {
+    case cookieObj[`${gameId}(b)`] === blackId: {
       return 'b';
     }
     default:

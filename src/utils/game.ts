@@ -1,4 +1,4 @@
-import { GameType } from '../types/types';
+import { GameType } from '@backend/types';
 import axios from 'axios';
 import { GameSeekInterface } from '../types/interfaces';
 import { PieceType, Square, Colors } from 'crochess-api/dist/types/types';
@@ -12,7 +12,7 @@ export function createGameSeek(
   seeker: string,
   gameType: GameType
 ) {
-  fetch(`${process.env.NEXT_PUBLIC_URL_BACKEND}/gameSeeks`, {
+  fetch(`${process.env.REACT_APP_URL_BACKEND}/gameSeeks`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export async function createGame(
   }
 
   const [res] = await Promise.all([
-    axios.put(`${process.env.NEXT_PUBLIC_URL_BACKEND}/games`, {
+    axios.put(`${process.env.REACT_APP_URL_BACKEND}/games`, {
       challenger,
       w: whitePlayer,
       b: blackPlayer,
@@ -49,10 +49,10 @@ export async function createGame(
       seeker: gameSeek.seeker,
     }),
     axios.delete(
-      `${process.env.NEXT_PUBLIC_URL_BACKEND}/gameSeeks/${gameSeek._id}`
+      `${process.env.REACT_APP_URL_BACKEND}/gameSeeks/${gameSeek._id}`
     ),
   ]);
-
+  console.log(res);
   if (res.status !== 200 || res.statusText !== 'OK')
     throw new Error('something went wrong fetching the game');
 
@@ -62,7 +62,7 @@ export async function createGame(
 export async function fetchGame(gameId: string) {
   if (!gameId) return;
   const res = await axios.get(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/games/${gameId}`
+    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}`
   );
   if (!res || res.status !== 200 || res.statusText !== 'OK')
     throw new Error('something went wrong fetching game');
@@ -78,7 +78,7 @@ export async function sendMove(
   promote: Exclude<PieceType, 'k' | 'p'> | '' = ''
 ) {
   const res = await axios.patch(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/games/${gameId}/move`,
+    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/move`,
     {
       playerId,
       to,
@@ -101,7 +101,7 @@ export async function offerDraw(
   const oppColor = OPP_COLOR[offerer];
 
   const res = await axios.patch(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/games/${gameId}/draw`,
+    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/draw`,
     {
       playerId,
       claimDraw: {
@@ -117,7 +117,7 @@ export async function offerDraw(
 
 export async function denyDraw(gameId: string, playerId: string) {
   const res = await axios.patch(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/games/${gameId}/draw`,
+    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/draw`,
     {
       playerId,
       claimDraw: {
@@ -133,7 +133,7 @@ export async function denyDraw(gameId: string, playerId: string) {
 
 export async function claimDraw(gameId: string, playerId: string) {
   const res = await axios.patch(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/games/${gameId}/status`,
+    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/status`,
     {
       playerId,
       winner: null,
@@ -153,7 +153,7 @@ export async function resign(
   const winner = OPP_COLOR[resigning];
 
   const res = await axios.patch(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/games/${gameId}/status`,
+    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/status`,
     {
       playerId,
       winner,

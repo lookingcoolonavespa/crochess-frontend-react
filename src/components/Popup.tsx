@@ -1,7 +1,7 @@
 import IconBtn from './IconBtn';
 import Form from './Form';
 
-import closeSVG from '../public/icons/close-line.svg';
+import closeSVG from '../icons/close-line.svg';
 import styles from '../styles/Popup.module.scss';
 import { FormProps } from '../types/interfaces';
 

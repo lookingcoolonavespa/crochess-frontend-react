@@ -41,11 +41,10 @@ const Home = () => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(function connectToSocket() {
-    socketRef.current = io(`${process.env.NEXT_PUBLIC_URL_BACKEND}/games`);
+    socketRef.current = io(`${process.env.REACT_APP_URL_BACKEND}/games`);
 
     const socket = socketRef.current;
     socketRef.current.on('connect', () => {
-      console.log(socket.id);
       setUser(socket.id);
     });
   }, []);

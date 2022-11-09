@@ -1,7 +1,9 @@
+import { GameType } from '@backend/types';
+
 type TimeControlButtonProps = {
   time: number | null;
   increment: number | null;
-  type: 'blitz' | 'bullet' | 'rapid' | 'classical' | 'custom';
+  type: GameType | 'custom';
   className: string;
   search: boolean;
   onClick: () => void;

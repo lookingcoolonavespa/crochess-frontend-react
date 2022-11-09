@@ -1,20 +1,8 @@
-import {
-  Colors,
-  PieceType,
-  Square,
-  FenStr,
-  MoveNotationList,
-} from 'crochess-api/dist/types/types';
+import { Colors } from 'crochess-api/dist/types/types';
 import { GameState } from './interfaces';
 
-export type GameType = 'blitz' | 'bullet' | 'rapid' | 'classical';
-
-export type ColorOptions = Colors | 'random';
-
-export type ClaimDrawRecord = Record<Colors, boolean>;
-
 export type GameOverDetails = {
-  winner: Colors;
+  winner: Colors | null;
   reason: string;
 } | null;
 

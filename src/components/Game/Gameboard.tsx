@@ -6,7 +6,7 @@ import {
   SquareIdx,
   PieceType,
 } from 'crochess-api/dist/types/types';
-import { isPromote } from 'crochess-api/dist/utils/getLegalMoves';
+import { isPromote } from 'crochess-api';
 import { convertIdxToSquare } from 'crochess-api/dist/utils/square';
 
 import React, { useState } from 'react';

@@ -30,21 +30,21 @@ import {
 import { parseCookies } from '../utils/misc';
 import styles from '../styles/ActiveGame.module.scss';
 import { fetchGame, sendMove } from '../utils/game';
+import { GameState } from '../types/interfaces';
 import {
-  FetchedGameInterface,
-  GameState,
+  GameInterface as FetchedGameInterface,
   UpdatedGameInterface,
-} from '../types/interfaces';
+} from '@backend/interfaces';
 import { ReducerActions, AllTimes } from '../types/types';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import { TimeDetails } from '../types/types';
 import { getActivePlayer } from '../utils/misc';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
-import getLegalMoves, {
-  getChecks,
-  isPromote,
-} from 'crochess-api/dist/utils/getLegalMoves';
-import { buildPieceMap, getEmptyPieceMap } from 'crochess-api/dist/utils/board';
+import { getLegalMoves, getChecks, isPromote } from 'crochess-api';
+import {
+  buildPieceMap,
+  getEmptyPieceMap,
+} from 'crochess-api/dist/utils/pieceMap';
 import { useParams } from 'react-router-dom';
 
 export default function ActiveGame() {
@@ -102,7 +102,8 @@ export default function ActiveGame() {
         q: false,
       },
     },
-    enPassant: '-',
+    enPassant: null,
+    board: Array(120),
   } as GameState);
   const activePlayerRef = useRef<Colors | null>(null);
   const historyRef = useRef<FenStr[]>([]);
@@ -125,15 +126,16 @@ export default function ActiveGame() {
       (async () => {
         if (!gameId) return;
         const game: FetchedGameInterface = await fetchGame(gameId as string);
+        console.log(game);
         if (!isFenStr(game.state.fen)) throw new Error('invalid game');
 
         const boardState = convertFromFen(game.state.fen) as FenState;
 
-        if (game.state.active) {
+        if (!game.causeOfDeath) {
           timeDetailsRef.current[boardState.activeColor] = {
             timeLeftAtTurnStart: game.state[`${boardState.activeColor}Time`],
             // if server has stamp use that one, otherwise initiate one
-            stampAtTurnStart: game.state.turnStart || Date.now(),
+            stampAtTurnStart: game.state.stampAtTurnStart || Date.now(),
           };
         }
 
@@ -143,9 +145,9 @@ export default function ActiveGame() {
         setGameboardView(() => activePlayerRef.current || 'w');
 
         let time: AllTimes = { w: 0, b: 0 };
-        if (game.state.turnStart) {
+        if (game.state.stampAtTurnStart) {
           // if fetch happens in middle of game
-          const elapsedTime = Date.now() - game.state.turnStart;
+          const elapsedTime = Date.now() - game.state.stampAtTurnStart;
           let timeLeft =
             game.state[`${boardState.activeColor}Time`] - elapsedTime;
           if (timeLeft < 0) timeLeft = 0;
@@ -172,7 +174,7 @@ export default function ActiveGame() {
             moveList: game.state.moveList,
             enPassant: boardState.enPassant,
             castleRights: boardState.castleRights,
-            gameOverDetails: game.winner
+            gameOverDetails: game.causeOfDeath
               ? {
                   winner: game.winner,
                   reason: game.causeOfDeath,
@@ -187,19 +189,20 @@ export default function ActiveGame() {
 
   useEffect(
     function connectToSocket() {
-      const socket = io(`${process.env.NEXT_PUBLIC_URL_BACKEND}/games`);
+      const socket = io(`${process.env.REACT_APP_URL_BACKEND}/games`);
 
       if (gameId) socket.emit('joinRoom', gameId);
 
       socket.on('update', (game: UpdatedGameInterface) => {
+        console.log(game);
         if (!isFenStr(game.fen)) throw new Error('game is invalid');
 
         const boardState = convertFromFen(game.fen) as FenState;
 
-        if (game.active) {
+        if ('gameOverDetails' in game) {
           timeDetailsRef.current[boardState.activeColor] = {
             timeLeftAtTurnStart: game[`${boardState.activeColor}Time`],
-            stampAtTurnStart: game.turnStart,
+            stampAtTurnStart: game.stampAtTurnStart,
           };
           timeDetailsRef.current[OPP_COLOR[boardState.activeColor]] = {
             // need to reset to 0 so Timer doesnt use the old values when turn changes
@@ -208,7 +211,7 @@ export default function ActiveGame() {
           };
         }
 
-        const elapsedTime = Date.now() - game.turnStart;
+        const elapsedTime = Date.now() - game.stampAtTurnStart;
         let timeLeft = game[`${boardState.activeColor}Time`] - elapsedTime;
         if (timeLeft < 0) timeLeft = 0;
 
@@ -230,15 +233,23 @@ export default function ActiveGame() {
           payload: {
             time,
             activeColor: boardState.activeColor,
-            claimDrawRecord: game.claimDrawRecord || { w: false, b: false },
+            claimDrawRecord:
+              'claimDrawRecord' in game
+                ? game.claimDrawRecord || { w: false, b: false }
+                : { w: false, b: false },
             moveList: game.moveList,
             enPassant: boardState.enPassant,
             castleRights: boardState.castleRights,
-            gameOverDetails: !game.active ? game.gameOverDetails : null,
+            gameOverDetails:
+              'gameOverDetails' in game ? game.gameOverDetails : null,
             board: boardState.board,
           },
         });
       });
+
+      return () => {
+        socket.disconnect();
+      };
     },
     [gameId]
   );
@@ -266,6 +277,7 @@ export default function ActiveGame() {
           board: gameState.board,
           castleRights: gameState.castleRights,
           enPassant: gameState.enPassant,
+          activeColor: gameState.activeColor,
         },
         pieceMap,
         checks
@@ -277,6 +289,7 @@ export default function ActiveGame() {
       gameState.castleRights,
       gameState.enPassant,
       pieceMap,
+      gameState.activeColor,
     ]
   );
 
@@ -297,6 +310,7 @@ export default function ActiveGame() {
             board: gameState.board,
             castleRights: gameState.castleRights,
             enPassant: gameState.enPassant,
+            activeColor: gameState.activeColor,
           },
           pieceMap as AllPieceMap,
           checks
@@ -388,12 +402,17 @@ export default function ActiveGame() {
     });
   }
 
+  const boardBeingViewed = useMemo(() => {
+    if (historyRef.current.length)
+      return convertFromFen(historyRef.current[historyIdx])?.board;
+  }, [historyIdx, gameState]);
+
   return (
     <main className={styles.main}>
       <div className={styles['game-contents']}>
         <Gameboard
           view={gameboardView}
-          board={gameState.board}
+          board={boardBeingViewed as Board}
           makeMove={makeMove}
           pieceToMove={pieceToMove}
           setPieceToMove={setPieceToMove}

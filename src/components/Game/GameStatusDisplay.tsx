@@ -1,7 +1,7 @@
 import React from 'react';
 
-import closeSVG from '../../public/icons/close-line.svg';
-import checkSVG from '../../public/icons/check-line.svg';
+import closeSVG from '../../icons/close-line.svg';
+import checkSVG from '../../icons/check-line.svg';
 import { GameStatusInterface } from '../../types/interfaces';
 import IconBtn from '../IconBtn';
 import FlatBtn from '../FlatBtn';

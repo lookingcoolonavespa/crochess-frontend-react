@@ -9,21 +9,15 @@ import {
   SquareIdx,
 } from 'crochess-api/dist/types/types';
 import {
-  GameType,
-  ClaimDrawRecord,
-  TimeDetails,
-  GameOverDetails,
-  Optional,
-} from './types';
+  GameState as FetchedState,
+  GameSeekInterface as GameSeek,
+} from '@backend/interfaces';
+import { GameType, ClaimDrawRecord } from '@backend/types';
+import { TimeDetails, GameOverDetails, Optional } from './types';
 import { Dispatch, SetStateAction, HTMLInputTypeAttribute } from 'react';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 
-export interface GameSeekInterface {
-  color: Colors | 'random';
-  time: number;
-  increment: number;
-  gameType: GameType;
-  seeker: string;
+export interface GameSeekInterface extends GameSeek {
   _id: string;
 }
 
@@ -41,15 +35,6 @@ export interface ControlBtnObj {
   onClick?: () => void;
   className?: string;
 }
-
-// export interface ActiveGameInterface {
-//   w: Player;
-//   b: Player;
-//   time: number;
-//   increment: number;
-//   turn: Colors;
-//   turnStart: number;
-// }
 
 export interface FormProps {
   fields: FieldsInterface[];
@@ -91,41 +76,6 @@ export interface GameState extends Omit<FenState, 'halfmoves' | 'fullmoves'> {
   moveList: MoveNotationList;
 }
 
-export interface FetchedState<
-  T extends true | false,
-  S extends number | undefined
-> {
-  turnStart: S;
-  active: T;
-  fen: FenStr;
-  moveList: MoveNotationList;
-  wTime: number;
-  bTime: number;
-}
-
-export interface FetchedGameInterface {
-  wId: string;
-  bId: string;
-  history: FenStr[];
-  time: number;
-  increment: number;
-  state: FetchedState<true | false, number | undefined>;
-  winner: Colors | null;
-  causeOfDeath: string;
-  claimDrawRecord: ClaimDrawRecord;
-}
-
-interface GameOver extends FetchedState<false, number> {
-  gameOverDetails: Exclude<GameOverDetails, null>;
-  claimDrawRecord?: ClaimDrawRecord;
-}
-interface GameActive extends FetchedState<true, number> {
-  wTime: number;
-  bTime: number;
-  gameOverDetails?: null;
-  claimDrawRecord?: ClaimDrawRecord;
-}
-export type UpdatedGameInterface = GameActive | GameOver;
 export interface GameStatusInterface {
   type:
     | 'gameOver'
