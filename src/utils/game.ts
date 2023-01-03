@@ -1,7 +1,11 @@
-import { GameType } from '@backend/types';
 import axios from 'axios';
 import { GameSeekInterface } from '../types/interfaces';
-import { PieceType, Square, Colors } from 'crochess-api/dist/types/types';
+import {
+  PieceType,
+  Square,
+  Colors,
+  PromotePieceType,
+} from 'crochess-api/dist/types/types';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import { getRdmColor } from './misc';
 
@@ -9,20 +13,19 @@ export function createGameSeek(
   time: number,
   increment: number,
   color: Colors | 'random',
-  seeker: string,
-  gameType: GameType
+  seeker: number
 ) {
   fetch(`${process.env.REACT_APP_URL_BACKEND}/gameSeeks`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ time, increment, color, gameType, seeker }),
+    body: JSON.stringify({ time, increment, color, seeker }),
   });
 }
 
 export async function createGame(
-  challenger: string,
+  challenger: number,
   gameSeek: GameSeekInterface
 ) {
   if (gameSeek.color === 'random') gameSeek.color = getRdmColor();
@@ -39,20 +42,14 @@ export async function createGame(
       break;
   }
 
-  const [res] = await Promise.all([
-    axios.put(`${process.env.REACT_APP_URL_BACKEND}/games`, {
-      challenger,
-      w: whitePlayer,
-      b: blackPlayer,
-      time: gameSeek.time,
-      increment: gameSeek.increment,
-      seeker: gameSeek.seeker,
-    }),
-    axios.delete(
-      `${process.env.REACT_APP_URL_BACKEND}/gameSeeks/${gameSeek._id}`
-    ),
-  ]);
-  console.log(res);
+  const res = await axios.put(`${process.env.REACT_APP_URL_BACKEND}/games`, {
+    challenger,
+    w_id: whitePlayer,
+    b_id: blackPlayer,
+    time: gameSeek.time,
+    increment: gameSeek.increment,
+    seeker: gameSeek.seeker,
+  });
   if (res.status !== 200 || res.statusText !== 'OK')
     throw new Error('something went wrong fetching the game');
 
@@ -73,24 +70,17 @@ export async function fetchGame(gameId: string) {
 export async function sendMove(
   gameId: string,
   playerId: string,
-  pieceToMove: Square,
-  to: Square,
-  promote: Exclude<PieceType, 'k' | 'p'> | '' = ''
+  move: `${Square}${Square}` | `${Square}${Square}${PromotePieceType}`
 ) {
   const res = await axios.patch(
     `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/move`,
     {
       playerId,
-      to,
-      promote,
-      from: pieceToMove,
+      move,
     }
   );
-
   if (!res || res.status !== 200 || res.statusText !== 'OK')
     throw new Error('something went wrong making move');
-  const elapsed = await res.data;
-  console.log(elapsed);
 }
 
 export async function offerDraw(

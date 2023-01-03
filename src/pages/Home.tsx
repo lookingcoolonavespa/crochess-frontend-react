@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { UserContext } from '../utils/contexts/UserContext';
 
 import Layout from '../components/Layout';
@@ -15,11 +14,13 @@ import Modal from '../components/Modal';
 import { toMilliseconds } from '../utils/timerStuff';
 import { getGameType } from '../utils/misc';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
+import { seekColor } from '../types/types';
+import useConnectToSocket from '../utils/hooks/useConnectToSocket';
 
 const Home = () => {
-  const [user, setUser] = useState('');
+  const [user, setUser] = useState<undefined | number>();
   const [popup, setPopup] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>('');
   const {
     inputValues: popupInputValues,
     handleInputChange,
@@ -28,7 +29,7 @@ const Home = () => {
   } = useInputValues<{
     increment: number;
     time_unit: 'seconds' | 'minutes' | 'hours';
-    color: 'w' | 'b' | 'random';
+    color: seekColor;
     time: number;
   }>({
     increment: 0,
@@ -36,18 +37,8 @@ const Home = () => {
     color: 'random',
     time: 5,
   });
+  const socketRef = useConnectToSocket(setUser);
   const [activeTab, setActiveTab] = useState('Create a game');
-
-  const socketRef = useRef<Socket | null>(null);
-
-  useEffect(function connectToSocket() {
-    socketRef.current = io(`${process.env.REACT_APP_URL_BACKEND}/games`);
-
-    const socket = socketRef.current;
-    socketRef.current.on('connect', () => {
-      setUser(socket.id);
-    });
-  }, []);
 
   function moveToTab(e: React.MouseEvent<HTMLElement>) {
     if (!e.currentTarget.dataset.tab) return;
@@ -148,15 +139,15 @@ const Home = () => {
                     [popupInputValues.time_unit]:
                       popupInputValues.time as number,
                   });
-                  createGameSeek(
-                    gameTime,
-                    popupInputValues.increment as number,
-                    popupInputValues.color === 'random'
-                      ? 'random'
-                      : OPP_COLOR[popupInputValues.color],
-                    user,
-                    getGameType(gameTime)
-                  );
+                  if (user)
+                    createGameSeek(
+                      gameTime,
+                      popupInputValues.increment as number,
+                      popupInputValues.color === 'random'
+                        ? 'random'
+                        : OPP_COLOR[popupInputValues.color],
+                      user
+                    );
                 }}
                 setError={setError}
               />

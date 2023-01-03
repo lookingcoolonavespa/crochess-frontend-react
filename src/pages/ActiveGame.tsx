@@ -126,7 +126,6 @@ export default function ActiveGame() {
       (async () => {
         if (!gameId) return;
         const game: FetchedGameInterface = await fetchGame(gameId as string);
-        console.log(game);
         if (!isFenStr(game.state.fen)) throw new Error('invalid game');
 
         const boardState = convertFromFen(game.state.fen) as FenState;
@@ -142,6 +141,7 @@ export default function ActiveGame() {
         maxTimeRef.current = game.time;
         activePlayerRef.current = getActivePlayer(gameId, game.wId, game.bId);
         historyRef.current = game.history;
+        setHistoryIdx(game.history.length - 1);
         setGameboardView(() => activePlayerRef.current || 'w');
 
         let time: AllTimes = { w: 0, b: 0 };
@@ -170,7 +170,7 @@ export default function ActiveGame() {
             time,
             board: boardState.board,
             activeColor: boardState.activeColor,
-            claimDrawRecord: game.claimDrawRecord,
+            claimDrawRecord: game.claimDrawRecord || { w: false, b: false },
             moveList: game.state.moveList,
             enPassant: boardState.enPassant,
             castleRights: boardState.castleRights,
@@ -194,7 +194,6 @@ export default function ActiveGame() {
       if (gameId) socket.emit('joinRoom', gameId);
 
       socket.on('update', (game: UpdatedGameInterface) => {
-        console.log(game);
         if (!isFenStr(game.fen)) throw new Error('game is invalid');
 
         const boardState = convertFromFen(game.fen) as FenState;
@@ -210,7 +209,7 @@ export default function ActiveGame() {
             stampAtTurnStart: 0,
           };
         }
-
+        console.log(Date.now());
         const elapsedTime = Date.now() - game.stampAtTurnStart;
         let timeLeft = game[`${boardState.activeColor}Time`] - elapsedTime;
         if (timeLeft < 0) timeLeft = 0;

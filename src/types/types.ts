@@ -1,6 +1,8 @@
 import { Colors } from 'crochess-api/dist/types/types';
 import { GameState } from './interfaces';
 
+export type seekColor = Colors | 'random';
+
 export type GameOverDetails = {
   winner: Colors | null;
   reason: string;

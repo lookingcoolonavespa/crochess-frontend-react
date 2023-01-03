@@ -83,3 +83,7 @@ export function getRdmColor(): Colors {
   const rdm = Math.random();
   return rdm >= 0.5 ? 'w' : 'b';
 }
+
+export function getRdmInt(): number {
+  return Math.floor(2147483647 * Math.random());
+}

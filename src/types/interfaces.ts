@@ -18,7 +18,7 @@ import { Dispatch, SetStateAction, HTMLInputTypeAttribute } from 'react';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 
 export interface GameSeekInterface extends GameSeek {
-  _id: string;
+  id: number;
 }
 
 export interface TimeObjInterface {
