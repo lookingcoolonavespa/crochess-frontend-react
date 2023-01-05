@@ -18,7 +18,7 @@ import { seekColor } from '../types/types';
 import useConnectToSocket from '../utils/hooks/useConnectToSocket';
 
 const Home = () => {
-  const [user, setUser] = useState<undefined | number>();
+  const [user, setUser] = useState<undefined | string>();
   const [popup, setPopup] = useState(false);
   const [error, setError] = useState<string>('');
   const {
@@ -37,7 +37,7 @@ const Home = () => {
     color: 'random',
     time: 5,
   });
-  const socketRef = useConnectToSocket(setUser);
+  const socketRef = useConnectToSocket(setUser, user);
   const [activeTab, setActiveTab] = useState('Create a game');
 
   function moveToTab(e: React.MouseEvent<HTMLElement>) {
@@ -139,8 +139,9 @@ const Home = () => {
                     [popupInputValues.time_unit]:
                       popupInputValues.time as number,
                   });
-                  if (user)
+                  if (user && socketRef.current)
                     createGameSeek(
+                      socketRef.current,
                       gameTime,
                       popupInputValues.increment as number,
                       popupInputValues.color === 'random'

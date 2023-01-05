@@ -11,7 +11,8 @@ interface ListOfGamesProps {
 }
 
 export default function ListOfGames({ active }: ListOfGamesProps) {
-  const { listOfGames } = useListOfGames(useContext(UserContext).socket);
+  const { socket } = useContext(UserContext);
+  const { listOfGames } = useListOfGames(socket);
 
   const rootClasses = [styles.main];
   if (!active) rootClasses.push('inactive');
@@ -30,7 +31,7 @@ export default function ListOfGames({ active }: ListOfGamesProps) {
       <section className={styles['game_door-ctn']}>
         <div className="scroller">
           {listOfGames.map((gs) => (
-            <GameDoor key={gs._id} gameSeek={gs} />
+            <GameDoor key={gs.id} gameSeek={gs} />
           ))}
         </div>
       </section>

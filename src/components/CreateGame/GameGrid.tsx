@@ -15,7 +15,7 @@ interface GameGridProps {
 
 const GameGrid = ({ active, className, createCustomGame }: GameGridProps) => {
   const [activeSearch, setActiveSearch] = useState<null | number>(null);
-  const { user } = useContext(UserContext);
+  const { user, socket } = useContext(UserContext);
 
   const rootClasses = [styles.main, 'foreground'];
   if (className) rootClasses.push(className);
@@ -48,7 +48,7 @@ const GameGrid = ({ active, className, createCustomGame }: GameGridProps) => {
               setActiveSearch(i);
               const time = toMilliseconds({ minutes: tc.time });
               try {
-                createGameSeek(time, tc.increment, 'random', user, tc.type);
+                createGameSeek(socket, time, tc.increment, 'random', user);
               } catch (err) {
                 console.log(err);
               }

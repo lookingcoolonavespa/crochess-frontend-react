@@ -8,30 +8,34 @@ import {
 } from 'crochess-api/dist/types/types';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import { getRdmColor } from './misc';
+import { Client } from '@stomp/stompjs';
 
 export function createGameSeek(
+  stompClient: Client,
   time: number,
   increment: number,
   color: Colors | 'random',
-  seeker: number
+  seeker: string
 ) {
-  fetch(`${process.env.REACT_APP_URL_BACKEND}/gameSeeks`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ time, increment, color, seeker }),
+  stompClient.publish({
+    destination: '/app/api/gameseeks',
+    body: JSON.stringify({
+      time,
+      increment,
+      color,
+      seeker,
+    }),
   });
 }
 
 export async function createGame(
-  challenger: number,
+  challenger: string,
   gameSeek: GameSeekInterface
 ) {
-  if (gameSeek.color === 'random') gameSeek.color = getRdmColor();
+  if (gameSeek.color.toLowerCase() === 'random') gameSeek.color = getRdmColor();
 
   let whitePlayer, blackPlayer;
-  switch (gameSeek.color) {
+  switch (gameSeek.color.toLowerCase()) {
     case 'w':
       whitePlayer = challenger;
       blackPlayer = gameSeek.seeker;
@@ -42,15 +46,16 @@ export async function createGame(
       break;
   }
 
-  const res = await axios.put(`${process.env.REACT_APP_URL_BACKEND}/games`, {
-    challenger,
-    w_id: whitePlayer,
-    b_id: blackPlayer,
-    time: gameSeek.time,
-    increment: gameSeek.increment,
-    seeker: gameSeek.seeker,
-  });
-  if (res.status !== 200 || res.statusText !== 'OK')
+  const res = await axios.post(
+    `${process.env.REACT_APP_URL_BACKEND}/api/game`,
+    {
+      w_id: whitePlayer,
+      b_id: blackPlayer,
+      time: gameSeek.time,
+      increment: gameSeek.increment,
+    }
+  );
+  if (res.status !== 200)
     throw new Error('something went wrong fetching the game');
 
   return await res.data;
@@ -59,7 +64,7 @@ export async function createGame(
 export async function fetchGame(gameId: string) {
   if (!gameId) return;
   const res = await axios.get(
-    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}`
+    `${process.env.REACT_APP_URL_BACKEND}/api/games/${gameId}`
   );
   if (!res || res.status !== 200 || res.statusText !== 'OK')
     throw new Error('something went wrong fetching game');
@@ -73,7 +78,7 @@ export async function sendMove(
   move: `${Square}${Square}` | `${Square}${Square}${PromotePieceType}`
 ) {
   const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/move`,
+    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/move`,
     {
       playerId,
       move,
@@ -91,7 +96,7 @@ export async function offerDraw(
   const oppColor = OPP_COLOR[offerer];
 
   const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/draw`,
+    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/draw`,
     {
       playerId,
       claimDraw: {
@@ -107,7 +112,7 @@ export async function offerDraw(
 
 export async function denyDraw(gameId: string, playerId: string) {
   const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/draw`,
+    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/draw`,
     {
       playerId,
       claimDraw: {
@@ -143,7 +148,7 @@ export async function resign(
   const winner = OPP_COLOR[resigning];
 
   const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/status`,
+    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/status`,
     {
       playerId,
       winner,

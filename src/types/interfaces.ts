@@ -17,6 +17,12 @@ import { TimeDetails, GameOverDetails, Optional } from './types';
 import { Dispatch, SetStateAction, HTMLInputTypeAttribute } from 'react';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 
+export interface Socket extends WebSocket {
+  _transport: {
+    url: string;
+  };
+}
+
 export interface GameSeekInterface extends GameSeek {
   id: number;
 }
