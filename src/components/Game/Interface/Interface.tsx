@@ -1,21 +1,21 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { MemoizedControls } from './MoveList/Controls';
+import { MemoizedControls } from './History/Controls';
 import Timer, { TimerProps } from './Timer';
-import { MemoizedMoveList } from './MoveList/MoveList';
+import { MemoizedHistory } from './History/History';
 import styles from '../../../styles/GameInterface.module.scss';
 import { createControlBtnObj } from '../../../utils/misc';
 import flagIcon from '../../../icons/flag-fill.svg';
 import TimerBar from './TimerBar';
 import { MemoizedGameStatusDisplay } from '../GameStatusDisplay';
-import { GameOverDetails } from '../../../types/types';
-import { Colors, MoveNotationList } from 'crochess-api/dist/types/types';
+import { GameOverDetails, HistoryArr } from '../../../types/types';
+import { Colors } from 'crochess-api/dist/types/types';
 
 interface InterfaceProps {
   activePlayer: Colors | null;
   whiteDetails: TimeDetails;
   blackDetails: TimeDetails;
-  moveList: MoveNotationList;
-  moveListControls: {
+  history: HistoryArr;
+  historyControls: {
     goBackToStart: () => void;
     goBackOneMove: () => void;
     goForwardOneMove: () => void;
@@ -38,8 +38,8 @@ export default function Interface({
   blackDetails,
   view,
   flipBoard,
-  moveList,
-  moveListControls,
+  history,
+  historyControls,
   gameOverDetails,
   offeredDraw,
   claimDraw,
@@ -160,10 +160,10 @@ export default function Interface({
             activePlayer={activePlayer as Colors}
           />
         )}
-        <MemoizedMoveList
-          moveList={moveList}
+        <MemoizedHistory
+          moveList={history}
           flipBoard={flipBoard}
-          controls={moveListControls}
+          controls={historyControls}
         />
       </div>
       {activePlayer && !gameOverDetails && (

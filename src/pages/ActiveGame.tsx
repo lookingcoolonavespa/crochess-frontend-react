@@ -1,470 +1,482 @@
-// import {
-//   useState,
-//   useEffect,
-//   useRef,
-//   useCallback,
-//   useMemo,
-//   useReducer,
-//   Reducer,
-//   useContext,
-// } from 'react';
-// import Gameboard from '../components/Game/Gameboard';
-// import Interface from '../components/Game/Interface/Interface';
-// import {
-//   convertIdxToSquare,
-//   convertSquareToIdx,
-// } from 'crochess-api/dist/utils/square';
-// import { convertFromFen } from 'crochess-api/dist/utils/fen';
-// import { isFenStr } from 'crochess-api/dist/utils/typeCheck';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useReducer,
+  Reducer,
+  useContext,
+} from 'react';
+import Gameboard from '../components/Game/Gameboard';
+import Interface from '../components/Game/Interface/Interface';
+import {
+  convertIdxToSquare,
+  convertSquareToIdx,
+} from 'crochess-api/dist/utils/square';
+import { convertFromFen } from 'crochess-api/dist/utils/fen';
+import { isFenStr } from 'crochess-api/dist/utils/typeCheck';
 
-// import {
-//   Colors,
-//   Board,
-//   Square,
-//   MoveNotationList,
-//   FenStr,
-//   Enumerate,
-//   AllPieceMap,
-//   PromotePieceType,
-// } from 'crochess-api/dist/types/types';
-// import { parseCookies } from '../utils/misc';
-// import styles from '../styles/ActiveGame.module.scss';
-// import { fetchGame, sendMove } from '../utils/game';
-// import { GameState } from '../types/interfaces';
-// import {
-//   GameInterface as FetchedGameInterface,
-//   UpdatedGameInterface,
-// } from '@backend/interfaces';
-// import { ReducerActions, AllTimes } from '../types/types';
-// import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
-// import { TimeDetails } from '../types/types';
-// import { getActivePlayer } from '../utils/misc';
-// import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
-// import { getLegalMoves, getChecks, isPromote } from 'crochess-api';
-// import {
-//   buildPieceMap,
-//   getEmptyPieceMap,
-// } from 'crochess-api/dist/utils/pieceMap';
-// import { useParams } from 'react-router-dom';
-// import { UserContext } from '../utils/contexts/UserContext';
+import {
+  Colors,
+  Board,
+  Square,
+  MoveNotationList,
+  FenStr,
+  Enumerate,
+  AllPieceMap,
+  PromotePieceType,
+  Tuple,
+} from 'crochess-api/dist/types/types';
+import { parseCookies } from '../utils/misc';
+import styles from '../styles/ActiveGame.module.scss';
+import { fetchGame, sendMove } from '../utils/game';
+import {
+  GameSchema,
+  GameStateClient,
+  GameStateSchema,
+} from '../types/interfaces';
+import { ReducerActions, AllTimes, HistoryArr } from '../types/types';
+import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
+import { TimeDetails } from '../types/types';
+import { getActivePlayer } from '../utils/misc';
+import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
+import { getLegalMoves, getChecks, isPromote } from 'crochess-api';
+import {
+  buildPieceMap,
+  getEmptyPieceMap,
+} from 'crochess-api/dist/utils/pieceMap';
+import { useParams } from 'react-router-dom';
+import { UserContext } from '../utils/contexts/UserContext';
 
-// export default function ActiveGame() {
-//   const mounted = useRef(false);
+export default function ActiveGame() {
+  const mounted = useRef(false);
 
-//   const { socket } = useContext(UserContext);
+  const { socket } = useContext(UserContext);
 
-//   const maxTimeRef = useRef<number>(0);
-//   const timeDetailsRef = useRef<TimeDetails>({
-//     w: {
-//       timeLeftAtTurnStart: 0,
-//       stampAtTurnStart: 0,
-//     },
-//     b: {
-//       timeLeftAtTurnStart: 0,
-//       stampAtTurnStart: 0,
-//     },
-//   });
+  const maxTimeRef = useRef<number>(0);
+  const timeDetailsRef = useRef<TimeDetails>({
+    w: {
+      timeLeftAtTurnStart: 0,
+      stampAtTurnStart: 0,
+    },
+    b: {
+      timeLeftAtTurnStart: 0,
+      stampAtTurnStart: 0,
+    },
+  });
 
-//   const [gameboardView, setGameboardView] = useState<Colors>('w');
+  const [gameboardView, setGameboardView] = useState<Colors>('w');
 
-//   const reducer: Reducer<GameState, ReducerActions> = (
-//     state: GameState,
-//     action: ReducerActions
-//   ): GameState => {
-//     switch (action.type) {
-//       case 'update on load/move': {
-//         return action.payload;
-//       }
-//       case 'update time': {
-//         return {
-//           ...state,
-//           time: {
-//             [action.payload.color]: action.payload.time,
-//             [OPP_COLOR[action.payload.color]]:
-//               state.time[OPP_COLOR[action.payload.color]],
-//           } as Record<Colors, number>,
-//         };
-//       }
-//     }
+  const reducer: Reducer<GameStateClient, ReducerActions> = (
+    state: GameStateClient,
+    action: ReducerActions
+  ): GameStateClient => {
+    switch (action.type) {
+      case 'init': {
+        return action.payload;
+      }
+      case 'update on move': {
+        return { ...state, ...action.payload };
+      }
+      case 'update draw': {
+        return { ...state, drawRecord: action.payload };
+      }
+      case 'update time': {
+        return {
+          ...gameState,
+          time: {
+            [action.payload.color]: action.payload.time,
+            [OPP_COLOR[action.payload.color]]:
+              state.time[OPP_COLOR[action.payload.color]],
+          } as Record<Colors, number>,
+        };
+      }
+      default:
+        return state;
+    }
+  };
+  const [gameState, dispatch] = useReducer(reducer, {
+    time: { w: null, b: null },
+    activeColor: 'w',
+    history: [] as HistoryArr,
+    drawRecord: { w: false, b: false },
+    gameOverDetails: null,
+    castleRights: {
+      w: {
+        k: false,
+        q: false,
+      },
+      b: {
+        k: false,
+        q: false,
+      },
+    },
+    enPassant: null,
+    board: Array(120),
+  } as GameStateClient);
+  const activePlayerRef = useRef<Colors | null>(null);
+  const movesRef = useRef<MoveNotationList>([]);
+  const [historyIdx, setHistoryIdx] =
+    useState<Enumerate<typeof movesRef.current.length>>(0);
+  const [squareToMove, setSquareToMove] = useState<Square | null>(null);
 
-//     return state;
-//   };
-//   const [gameState, dispatch] = useReducer(reducer, {
-//     time: { w: null, b: null },
-//     activeColor: 'w',
-//     moveList: [] as MoveNotationList,
-//     claimDrawRecord: { w: false, b: false },
-//     gameOverDetails: null,
-//     castleRights: {
-//       w: {
-//         k: false,
-//         q: false,
-//       },
-//       b: {
-//         k: false,
-//         q: false,
-//       },
-//     },
-//     enPassant: null,
-//     board: Array(120),
-//   } as GameState);
-//   const activePlayerRef = useRef<Colors | null>(null);
-//   const historyRef = useRef<FenStr[]>([]);
-//   const [historyIdx, setHistoryIdx] =
-//     useState<Enumerate<typeof historyRef.current.length>>(0);
-//   const [pieceToMove, setPieceToMove] = useState<Square | null>(null);
+  const { gameId } = useParams();
 
-//   const { gameId } = useParams();
+  useEffect(function setMounted() {
+    mounted.current = true;
 
-//   useEffect(function setMounted() {
-//     mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
-//     return () => {
-//       mounted.current = false;
-//     };
-//   }, []);
+  function parseHistory(history: string): HistoryArr {
+    return history.split(' ').reduce(function parseIntoPairs(acc, curr, i) {
+      if (i % 2 !== 0) {
+        acc.push([curr, '']);
+      } else acc[acc.length - 1][1] = curr;
 
-//   useEffect(
-//     function onFirstLoad() {
-//       (async () => {
-//         if (!gameId) return;
-//         const game: FetchedGameInterface = await fetchGame(gameId as string);
-//         if (!isFenStr(game.state.fen)) throw new Error('invalid game');
+      return acc;
+    }, [] as HistoryArr);
+  }
 
-//         const boardState = convertFromFen(game.state.fen) as FenState;
+  useEffect(
+    function onFirstLoad() {
+      socket?.subscribe(`/app/api/game/${gameId}`, (message) => {
+        const game: GameSchema = JSON.parse(message.body);
+        const gameState = game.gameState;
 
-//         if (!game.causeOfDeath) {
-//           timeDetailsRef.current[boardState.activeColor] = {
-//             timeLeftAtTurnStart: game.state[`${boardState.activeColor}Time`],
-//             // if server has stamp use that one, otherwise initiate one
-//             stampAtTurnStart: game.state.stampAtTurnStart || Date.now(),
-//           };
-//         }
+        const boardState = convertFromFen(gameState.fen) as FenState;
 
-//         maxTimeRef.current = game.time;
-//         activePlayerRef.current = getActivePlayer(gameId, game.wId, game.bId);
-//         historyRef.current = game.history;
-//         setHistoryIdx(game.history.length - 1);
-//         setGameboardView(() => activePlayerRef.current || 'w');
+        if (!game.result) {
+          timeDetailsRef.current[boardState.activeColor] = {
+            timeLeftAtTurnStart: gameState[`${boardState.activeColor}_time`],
+            // if server has stamp use that one, otherwise initiate one
+            stampAtTurnStart: gameState.time_stamp_at_turn_start || Date.now(),
+          };
+        }
 
-//         let time: AllTimes = { w: 0, b: 0 };
-//         if (game.state.stampAtTurnStart) {
-//           // if fetch happens in middle of game
-//           const elapsedTime = Date.now() - game.state.stampAtTurnStart;
-//           let timeLeft =
-//             game.state[`${boardState.activeColor}Time`] - elapsedTime;
-//           if (timeLeft < 0) timeLeft = 0;
+        maxTimeRef.current = game.time;
+        activePlayerRef.current = getActivePlayer(
+          gameId!,
+          game.w_id,
+          game.b_id
+        );
+        movesRef.current = gameState.moves.split(' ');
+        setHistoryIdx(gameState.history.length - 1);
+        setGameboardView(() => activePlayerRef.current || 'w');
 
-//           time = {
-//             [boardState.activeColor]: timeLeft,
-//             [OPP_COLOR[boardState.activeColor]]:
-//               game.state[`${OPP_COLOR[boardState.activeColor]}Time`],
-//           } as AllTimes;
-//         } else {
-//           time = {
-//             w: game.state.wTime,
-//             b: game.state.bTime,
-//           };
-//         }
+        let time: AllTimes = { w: 0, b: 0 };
+        if (gameState.time_stamp_at_turn_start) {
+          // if fetch happens in middle of game
+          const elapsedTime = Date.now() - gameState.time_stamp_at_turn_start;
+          let timeLeft =
+            gameState[`${boardState.activeColor}_time`] - elapsedTime;
+          if (timeLeft < 0) timeLeft = 0;
 
-//         dispatch({
-//           type: 'update on load/move',
-//           payload: {
-//             time,
-//             board: boardState.board,
-//             activeColor: boardState.activeColor,
-//             claimDrawRecord: game.claimDrawRecord || { w: false, b: false },
-//             moveList: game.state.moveList,
-//             enPassant: boardState.enPassant,
-//             castleRights: boardState.castleRights,
-//             gameOverDetails: game.causeOfDeath
-//               ? {
-//                   winner: game.winner,
-//                   reason: game.causeOfDeath,
-//                 }
-//               : null,
-//           },
-//         });
-//       })();
-//     },
-//     [gameId]
-//   );
+          time = {
+            [boardState.activeColor]: timeLeft,
+            [OPP_COLOR[boardState.activeColor]]:
+              gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
+          } as AllTimes;
+        } else {
+          time = {
+            w: gameState.w_time,
+            b: gameState.b_time,
+          };
+        }
 
-//   useEffect(
-//     function subscribeToGame() {
-//       const subscription = stompClient.subscribe(
-//         '/topics/api/gameseeks',
-//         (message) => {
-//           if (!message.body) return;
-//         }
-//       );
+        dispatch({
+          type: 'init',
+          payload: {
+            time,
+            board: boardState.board,
+            activeColor: boardState.activeColor,
+            drawRecord: game.drawRecord,
+            history: parseHistory(gameState.history),
+            enPassant: boardState.enPassant,
+            castleRights: boardState.castleRights,
+            gameOverDetails: game.result
+              ? {
+                  winner: game.winner,
+                  reason: game.result,
+                }
+              : null,
+          },
+        });
+      });
+    },
+    [socket, gameId]
+  );
 
-//       socket.on('update', (game: UpdatedGameInterface) => {
-//         if (!isFenStr(game.fen)) throw new Error('game is invalid');
+  useEffect(
+    function subscribeToGame() {
+      if (!socket) return;
+      const subscription = socket.subscribe(
+        `/topics/api/game/${gameId}`,
+        (message) => {
+          const data = JSON.parse(message.body);
 
-//         const boardState = convertFromFen(game.fen) as FenState;
+          switch (data.event) {
+            case 'update': {
+              const gameState = data.payload as GameStateSchema;
+              const boardState = convertFromFen(gameState.fen) as FenState;
 
-//         if ('gameOverDetails' in game) {
-//           timeDetailsRef.current[boardState.activeColor] = {
-//             timeLeftAtTurnStart: game[`${boardState.activeColor}Time`],
-//             stampAtTurnStart: game.stampAtTurnStart,
-//           };
-//           timeDetailsRef.current[OPP_COLOR[boardState.activeColor]] = {
-//             // need to reset to 0 so Timer doesnt use the old values when turn changes
-//             timeLeftAtTurnStart: 0,
-//             stampAtTurnStart: 0,
-//           };
-//         }
-//         console.log(Date.now());
-//         const elapsedTime = Date.now() - game.stampAtTurnStart;
-//         let timeLeft = game[`${boardState.activeColor}Time`] - elapsedTime;
-//         if (timeLeft < 0) timeLeft = 0;
+              const elapsedTime =
+                Date.now() - gameState.time_stamp_at_turn_start;
+              let timeLeft =
+                gameState[`${boardState.activeColor}_time`] - elapsedTime;
+              if (timeLeft < 0) timeLeft = 0;
 
-//         const time = {
-//           [boardState.activeColor]: timeLeft,
-//           [OPP_COLOR[boardState.activeColor]]:
-//             game[`${OPP_COLOR[boardState.activeColor]}Time`],
-//         } as AllTimes;
+              const time = {
+                [boardState.activeColor]: timeLeft,
+                [OPP_COLOR[boardState.activeColor]]:
+                  gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
+              } as AllTimes;
 
-//         historyRef.current.push(game.fen);
-//         setHistoryIdx((prev) => {
-//           if (prev === historyRef.current.length - 2)
-//             return historyRef.current.length - 1;
-//           else return prev;
-//         });
+              movesRef.current = gameState.moves.split(' ');
+              setHistoryIdx((prev) => {
+                if (prev === movesRef.current.length - 2)
+                  return movesRef.current.length - 1;
+                else return prev;
+              });
 
-//         dispatch({
-//           type: 'update on load/move',
-//           payload: {
-//             time,
-//             activeColor: boardState.activeColor,
-//             claimDrawRecord:
-//               'claimDrawRecord' in game
-//                 ? game.claimDrawRecord || { w: false, b: false }
-//                 : { w: false, b: false },
-//             moveList: game.moveList,
-//             enPassant: boardState.enPassant,
-//             castleRights: boardState.castleRights,
-//             gameOverDetails:
-//               'gameOverDetails' in game ? game.gameOverDetails : null,
-//             board: boardState.board,
-//           },
-//         });
-//       });
+              dispatch({
+                type: 'update on move',
+                payload: {
+                  time,
+                  activeColor: boardState.activeColor,
+                  history: parseHistory(gameState.history),
+                  enPassant: boardState.enPassant,
+                  castleRights: boardState.castleRights,
+                  board: boardState.board,
+                },
+              });
+              break;
+            }
 
-//       return () => {
-//         socket.disconnect();
-//       };
-//     },
-//     [gameId]
-//   );
+            case 'update draw': {
+              dispatch({
+                type: 'update draw',
+                payload: data,
+              });
+            }
+          }
+        }
+      );
 
-//   const pieceMap = useMemo(() => {
-//     return gameState.board
-//       ? buildPieceMap(gameState.board)
-//       : getEmptyPieceMap();
-//   }, [gameState.board]);
+      return () => {
+        subscription.unsubscribe();
+      };
+    },
+    [socket, gameId]
+  );
 
-//   const checks = useMemo(() => {
-//     if (gameState.activeColor !== activePlayerRef.current) return [];
-//     return getChecks(
-//       OPP_COLOR[gameState.activeColor],
-//       pieceMap[gameState.activeColor].k[0],
-//       gameState.board as Board
-//     );
-//   }, [gameState.activeColor, pieceMap, gameState.board]);
+  const pieceMap = useMemo(() => {
+    return gameState.board
+      ? buildPieceMap(gameState.board)
+      : getEmptyPieceMap();
+  }, [gameState.board]);
 
-//   const getMoves = useCallback(
-//     (square: Square) => {
-//       return getLegalMoves(
-//         square,
-//         {
-//           board: gameState.board,
-//           castleRights: gameState.castleRights,
-//           enPassant: gameState.enPassant,
-//           activeColor: gameState.activeColor,
-//         },
-//         pieceMap,
-//         checks
-//       )?.map((idx) => convertIdxToSquare(idx));
-//     },
-//     [
-//       checks,
-//       gameState.board,
-//       gameState.castleRights,
-//       gameState.enPassant,
-//       pieceMap,
-//       gameState.activeColor,
-//     ]
-//   );
+  const checks = useMemo(() => {
+    if (gameState.activeColor !== activePlayerRef.current) return [];
+    return getChecks(
+      OPP_COLOR[gameState.activeColor],
+      pieceMap[gameState.activeColor].k[0],
+      gameState.board as Board
+    );
+  }, [gameState.activeColor, pieceMap, gameState.board]);
 
-//   const validateMove = useCallback(
-//     (square: Square) => {
-//       if (!gameState.board || !pieceToMove) return false;
-//       if (activePlayerRef.current !== gameState.activeColor) return false;
+  const getMoves = useCallback(
+    (square: Square) => {
+      return getLegalMoves(
+        square,
+        {
+          board: gameState.board,
+          castleRights: gameState.castleRights,
+          enPassant: gameState.enPassant,
+          activeColor: gameState.activeColor,
+        },
+        pieceMap,
+        checks
+      )?.map((idx) => convertIdxToSquare(idx));
+    },
+    [
+      checks,
+      gameState.board,
+      gameState.castleRights,
+      gameState.enPassant,
+      pieceMap,
+      gameState.activeColor,
+    ]
+  );
 
-//       const piece = gameState.board[convertSquareToIdx(pieceToMove)];
-//       if (!piece) return false;
-//       if (piece[0] !== gameState.activeColor) return false;
-//       const sIdx = convertSquareToIdx(square);
-//       if (
-//         // returns null if there is no piece
-//         getLegalMoves(
-//           pieceToMove,
-//           {
-//             board: gameState.board,
-//             castleRights: gameState.castleRights,
-//             enPassant: gameState.enPassant,
-//             activeColor: gameState.activeColor,
-//           },
-//           pieceMap as AllPieceMap,
-//           checks
-//         )?.every((s) => s !== sIdx)
-//       )
-//         return false;
+  const validateMove = useCallback(
+    (square: Square) => {
+      if (!gameState.board || !squareToMove) return false;
+      if (activePlayerRef.current !== gameState.activeColor) return false;
 
-//       return true;
-//     },
-//     [
-//       checks,
-//       gameState.activeColor,
-//       gameState.board,
-//       gameState.castleRights,
-//       gameState.enPassant,
-//       pieceMap,
-//       pieceToMove,
-//     ]
-//   );
+      const piece = gameState.board[convertSquareToIdx(squareToMove)];
+      if (!piece) return false;
+      if (piece[0] !== gameState.activeColor) return false;
+      const sIdx = convertSquareToIdx(square);
+      if (
+        // returns null if there is no piece
+        getLegalMoves(
+          squareToMove,
+          {
+            board: gameState.board,
+            castleRights: gameState.castleRights,
+            enPassant: gameState.enPassant,
+            activeColor: gameState.activeColor,
+          },
+          pieceMap as AllPieceMap,
+          checks
+        )?.every((s) => s !== sIdx)
+      )
+        return false;
 
-//   const checkPromotion = useCallback(
-//     (square: Square) => {
-//       if (!pieceToMove) return false;
-//       const piece = gameState.board[convertSquareToIdx(pieceToMove)];
-//       if (!piece) return false;
-//       return isPromote(piece, square);
-//     },
-//     [gameState.board, pieceToMove]
-//   );
+      return true;
+    },
+    [
+      checks,
+      gameState.activeColor,
+      gameState.board,
+      gameState.castleRights,
+      gameState.enPassant,
+      pieceMap,
+      squareToMove,
+    ]
+  );
 
-//   const makeMove = useCallback(
-//     async (to: Square, promote: PromotePieceType | '' = '') => {
-//       // cant make move if player is viewing past positions
-//       if (historyIdx !== historyRef.current.length - 1) return;
-//       if (!pieceToMove) return;
+  const checkPromotion = useCallback(
+    (square: Square) => {
+      if (!squareToMove) return false;
+      const piece = gameState.board[convertSquareToIdx(squareToMove)];
+      if (!piece) return false;
+      return isPromote(piece, square);
+    },
+    [gameState.board, squareToMove]
+  );
 
-//       const valid = validateMove(to);
-//       if (!valid) return;
-//       if (promote && !checkPromotion(to)) return;
+  const makeMove = useCallback(
+    async (to: Square, promote: PromotePieceType | '' = '') => {
+      // cant make move if player is viewing past positions
+      if (historyIdx !== movesRef.current.length - 1) return;
+      if (!squareToMove) return;
 
-//       const cookieObj = parseCookies(document.cookie);
-//       const playerId = cookieObj[`${gameId}(${activePlayerRef.current})`];
-//       try {
-//         await sendMove(
-//           gameId as string,
-//           playerId,
-//           `${pieceToMove}${to}${promote}`
-//         );
-//       } catch (err) {
-//         console.log(err);
-//       }
-//     },
-//     [gameId, validateMove, checkPromotion, pieceToMove, historyIdx]
-//   );
+      const valid = validateMove(to);
+      if (!valid) return;
+      if (promote && !checkPromotion(to)) return;
 
-//   const moveListControls = useMemo(() => {
-//     return {
-//       goBackToStart: () => {
-//         if (!historyRef.current.length) return;
-//         setHistoryIdx(0);
-//       },
-//       goBackOneMove: () => {
-//         if (!historyRef.current.length) return;
-//         setHistoryIdx((prev) => {
-//           if (prev === 0) return prev;
-//           return prev - 1;
-//         });
-//       },
-//       goForwardOneMove: () => {
-//         if (!historyRef.current.length) return;
-//         setHistoryIdx((prev) => {
-//           if (prev === historyRef.current.length - 1) return prev;
-//           return prev + 1;
-//         });
-//       },
-//       goToCurrentMove: () => {
-//         if (!historyRef.current.length) return;
-//         setHistoryIdx(historyRef.current.length - 1);
-//       },
-//     };
-//   }, []);
+      const cookieObj = parseCookies(document.cookie);
+      const playerId = cookieObj[`${gameId}(${activePlayerRef.current})`];
+      try {
+        await sendMove(
+          gameId as string,
+          playerId,
+          `${squareToMove}${to}${promote}`
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    [gameId, validateMove, checkPromotion, squareToMove, historyIdx]
+  );
 
-//   const flipBoard = useCallback(() => {
-//     setGameboardView((prev) => {
-//       return OPP_COLOR[prev];
-//     });
-//   }, []);
+  const moveListControls = useMemo(() => {
+    return {
+      goBackToStart: () => {
+        if (!movesRef.current.length) return;
+        setHistoryIdx(0);
+      },
+      goBackOneMove: () => {
+        if (!movesRef.current.length) return;
+        setHistoryIdx((prev) => {
+          if (prev === 0) return prev;
+          return prev - 1;
+        });
+      },
+      goForwardOneMove: () => {
+        if (!movesRef.current.length) return;
+        setHistoryIdx((prev) => {
+          if (prev === movesRef.current.length - 1) return prev;
+          return prev + 1;
+        });
+      },
+      goToCurrentMove: () => {
+        if (!movesRef.current.length) return;
+        setHistoryIdx(movesRef.current.length - 1);
+      },
+    };
+  }, []);
 
-//   function updateTime(color: Colors, time: number) {
-//     dispatch({
-//       type: 'update time',
-//       payload: { color, time },
-//     });
-//   }
+  const flipBoard = useCallback(() => {
+    setGameboardView((prev) => {
+      return OPP_COLOR[prev];
+    });
+  }, []);
 
-//   const boardBeingViewed = useMemo(() => {
-//     if (historyRef.current.length)
-//       return convertFromFen(historyRef.current[historyIdx])?.board;
-//   }, [historyIdx, gameState]);
+  function updateTime(color: Colors, time: number) {
+    dispatch({
+      type: 'update time',
+      payload: { color, time },
+    });
+  }
 
-//   return (
-//     <main className={styles.main}>
-//       <div className={styles['game-contents']}>
-//         <Gameboard
-//           view={gameboardView}
-//           board={boardBeingViewed as Board}
-//           makeMove={makeMove}
-//           pieceToMove={pieceToMove}
-//           setPieceToMove={setPieceToMove}
-//           getLegalMoves={getMoves}
-//           activePlayer={activePlayerRef.current}
-//           validateMove={validateMove}
-//         />
-//         <Interface
-//           activePlayer={activePlayerRef.current}
-//           claimDraw={
-//             !!activePlayerRef.current &&
-//             gameState.claimDrawRecord[activePlayerRef.current]
-//           }
-//           offeredDraw={
-//             !!activePlayerRef.current &&
-//             !gameState.claimDrawRecord[activePlayerRef.current] &&
-//             gameState.claimDrawRecord[OPP_COLOR[activePlayerRef.current]]
-//           }
-//           gameOverDetails={gameState.gameOverDetails}
-//           whiteDetails={{
-//             maxTime: maxTimeRef.current,
-//             timeStampAtStart: timeDetailsRef.current.w.stampAtTurnStart,
-//             timeLeftAtStart: timeDetailsRef.current.w.timeLeftAtTurnStart,
-//             time: gameState.time.w,
-//             setTime: (time: number) => updateTime('w', time),
-//             active: !gameState.gameOverDetails && gameState.activeColor === 'w',
-//           }}
-//           blackDetails={{
-//             maxTime: maxTimeRef.current,
-//             timeStampAtStart: timeDetailsRef.current.b.stampAtTurnStart,
-//             timeLeftAtStart: timeDetailsRef.current.b.timeLeftAtTurnStart,
-//             time: gameState.time.b,
-//             setTime: (time: number) => updateTime('b', time),
-//             active: !gameState.gameOverDetails && gameState.activeColor === 'b',
-//           }}
-//           moveList={gameState.moveList}
-//           moveListControls={moveListControls}
-//           view={gameboardView}
-//           flipBoard={flipBoard}
-//         />
-//       </div>
-//     </main>
-//   );
-// }
+  const boardBeingViewed = useMemo(() => {
+    if (movesRef.current.length)
+      return convertFromFen(movesRef.current[historyIdx])?.board;
+  }, [historyIdx, gameState]);
 
-export {};
+  return (
+    <main className={styles.main}>
+      <div className={styles['game-contents']}>
+        <Gameboard
+          view={gameboardView}
+          board={boardBeingViewed as Board}
+          makeMove={makeMove}
+          squareToMove={squareToMove}
+          setSquareToMove={setSquareToMove}
+          getLegalMoves={getMoves}
+          activePlayer={activePlayerRef.current}
+          validateMove={validateMove}
+        />
+        <Interface
+          activePlayer={activePlayerRef.current}
+          claimDraw={
+            !!activePlayerRef.current &&
+            gameState.drawRecord[activePlayerRef.current]
+          }
+          offeredDraw={
+            !!activePlayerRef.current &&
+            !gameState.drawRecord[activePlayerRef.current] &&
+            gameState.drawRecord[OPP_COLOR[activePlayerRef.current]]
+          }
+          gameOverDetails={gameState.gameOverDetails}
+          whiteDetails={{
+            maxTime: maxTimeRef.current,
+            timeStampAtStart: timeDetailsRef.current.w.stampAtTurnStart,
+            timeLeftAtStart: timeDetailsRef.current.w.timeLeftAtTurnStart,
+            time: gameState.time.w,
+            setTime: (time: number) => updateTime('w', time),
+            active: !gameState.gameOverDetails && gameState.activeColor === 'w',
+          }}
+          blackDetails={{
+            maxTime: maxTimeRef.current,
+            timeStampAtStart: timeDetailsRef.current.b.stampAtTurnStart,
+            timeLeftAtStart: timeDetailsRef.current.b.timeLeftAtTurnStart,
+            time: gameState.time.b,
+            setTime: (time: number) => updateTime('b', time),
+            active: !gameState.gameOverDetails && gameState.activeColor === 'b',
+          }}
+          history={gameState.history}
+          historyControls={moveListControls}
+          view={gameboardView}
+          flipBoard={flipBoard}
+        />
+      </div>
+    </main>
+  );
+}

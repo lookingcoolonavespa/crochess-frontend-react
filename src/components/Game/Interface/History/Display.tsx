@@ -1,8 +1,8 @@
-import { MoveNotationList } from 'crochess-api/dist/types/types';
+import { HistoryArr } from '../../../../types/types';
 import useScrollOnLoad from '../../../../utils/hooks/useScrollToBottom';
 
 interface HistoryDisplayProps {
-  list: MoveNotationList;
+  list: HistoryArr;
   styles: { [key: string]: string };
 }
 

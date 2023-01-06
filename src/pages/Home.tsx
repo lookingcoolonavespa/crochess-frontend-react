@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { UserContext } from '../utils/contexts/UserContext';
 
 import Layout from '../components/Layout';
@@ -12,13 +12,12 @@ import useInputValues from '../utils/hooks/useInputValues';
 import { createGameSeek } from '../utils/game';
 import Modal from '../components/Modal';
 import { toMilliseconds } from '../utils/timerStuff';
-import { getGameType } from '../utils/misc';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import { seekColor } from '../types/types';
-import useConnectToSocket from '../utils/hooks/useConnectToSocket';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
-  const [user, setUser] = useState<undefined | string>();
+  const { user, socket } = useContext(UserContext);
   const [popup, setPopup] = useState(false);
   const [error, setError] = useState<string>('');
   const {
@@ -37,8 +36,21 @@ const Home = () => {
     color: 'random',
     time: 5,
   });
-  const socketRef = useConnectToSocket(setUser, user);
   const [activeTab, setActiveTab] = useState('Create a game');
+
+  const navigate = useNavigate();
+  useEffect(
+    function listenToAcceptedGameSeeks() {
+      if (!socket || !user) return;
+      socket.subscribe('/user/queue/gameseeks', (message) => {
+        const gameId = message.body;
+        sessionStorage.setItem(gameId, user); // used to identify user once they move into a game, useful for if they refresh or disconnect
+        // setIdToCookie(data.gameId, data.color, data.cookieId);
+        navigate(`/${gameId}`);
+      });
+    },
+    [navigate, user, socket]
+  );
 
   function moveToTab(e: React.MouseEvent<HTMLElement>) {
     if (!e.currentTarget.dataset.tab) return;
@@ -47,114 +59,107 @@ const Home = () => {
   return (
     <>
       <Layout className={styles.main}>
-        <UserContext.Provider
-          value={{ user, setUser, socket: socketRef.current }}
-        >
-          <div className={styles['tabbed-content']}>
-            <nav className={styles.tabs}>
-              <ul>
-                <li
-                  className={
-                    activeTab !== 'Create a game' ? styles.inactive : ''
-                  }
-                  onClick={moveToTab}
-                  data-tab="Create a game"
-                >
-                  <span>Create a game</span>
-                </li>
-                <li
-                  className={activeTab !== 'Game list' ? styles.inactive : ''}
-                  onClick={moveToTab}
-                  data-tab="Game list"
-                >
-                  <span>Game list</span>
-                </li>
-              </ul>
-            </nav>
-            <div className={styles.content}>
-              <GameGrid
-                active={activeTab === 'Create a game'}
-                createCustomGame={() => setPopup(true)}
-              />
-              <ListOfGames active={activeTab === 'Game list'} />
-            </div>
+        <div className={styles['tabbed-content']}>
+          <nav className={styles.tabs}>
+            <ul>
+              <li
+                className={activeTab !== 'Create a game' ? styles.inactive : ''}
+                onClick={moveToTab}
+                data-tab="Create a game"
+              >
+                <span>Create a game</span>
+              </li>
+              <li
+                className={activeTab !== 'Game list' ? styles.inactive : ''}
+                onClick={moveToTab}
+                data-tab="Game list"
+              >
+                <span>Game list</span>
+              </li>
+            </ul>
+          </nav>
+          <div className={styles.content}>
+            <GameGrid
+              active={activeTab === 'Create a game'}
+              createCustomGame={() => setPopup(true)}
+            />
+            <ListOfGames active={activeTab === 'Game list'} />
           </div>
-          {popup && (
-            <Modal
+        </div>
+        {popup && (
+          <Modal
+            close={() => {
+              resetInputValues();
+              setPopup(false);
+            }}
+          >
+            <Popup
+              title="Create a game"
+              fields={[
+                {
+                  label: 'Time',
+                  name: 'time',
+                  type: 'number',
+                  unitsDisplay: {
+                    label: '',
+                    name: 'time_unit',
+                    type: 'dropdown',
+                    options: [
+                      { value: 'seconds', display: 'seconds' },
+                      {
+                        value: 'minutes',
+                        display: 'minutes',
+                      },
+                      { value: 'hours', display: 'hours' },
+                    ],
+                  },
+                },
+                {
+                  label: 'Increment',
+                  name: 'increment',
+                  type: 'number',
+                  unitsDisplay: { label: 'seconds' },
+                },
+                {
+                  label: 'Choose your color',
+                  name: 'color',
+                  type: 'radioList',
+                  options: [
+                    { value: 'black' },
+                    { value: 'random' },
+                    { value: 'white' },
+                  ],
+                },
+              ]}
               close={() => {
                 resetInputValues();
                 setPopup(false);
               }}
-            >
-              <Popup
-                title="Create a game"
-                fields={[
-                  {
-                    label: 'Time',
-                    name: 'time',
-                    type: 'number',
-                    unitsDisplay: {
-                      label: '',
-                      name: 'time_unit',
-                      type: 'dropdown',
-                      options: [
-                        { value: 'seconds', display: 'seconds' },
-                        {
-                          value: 'minutes',
-                          display: 'minutes',
-                        },
-                        { value: 'hours', display: 'hours' },
-                      ],
-                    },
-                  },
-                  {
-                    label: 'Increment',
-                    name: 'increment',
-                    type: 'number',
-                    unitsDisplay: { label: 'seconds' },
-                  },
-                  {
-                    label: 'Choose your color',
-                    name: 'color',
-                    type: 'radioList',
-                    options: [
-                      { value: 'black' },
-                      { value: 'random' },
-                      { value: 'white' },
-                    ],
-                  },
-                ]}
-                close={() => {
-                  resetInputValues();
-                  setPopup(false);
-                }}
-                inputValues={popupInputValues}
-                handleInputChange={handleInputChange}
-                handleSelectChange={handleSelectChange}
-                isMobile={false}
-                actionBtnText="Create game"
-                noCancelBtn={false}
-                submitAction={() => {
-                  const gameTime = toMilliseconds({
-                    [popupInputValues.time_unit]:
-                      popupInputValues.time as number,
-                  });
-                  if (user && socketRef.current)
-                    createGameSeek(
-                      socketRef.current,
-                      gameTime,
-                      popupInputValues.increment as number,
-                      popupInputValues.color === 'random'
-                        ? 'random'
-                        : OPP_COLOR[popupInputValues.color],
-                      user
-                    );
-                }}
-                setError={setError}
-              />
-            </Modal>
-          )}
-        </UserContext.Provider>
+              inputValues={popupInputValues}
+              handleInputChange={handleInputChange}
+              handleSelectChange={handleSelectChange}
+              isMobile={false}
+              actionBtnText="Create game"
+              noCancelBtn={false}
+              submitAction={() => {
+                const gameTime = toMilliseconds({
+                  [popupInputValues.time_unit]: popupInputValues.time as number,
+                });
+                if (user && socket)
+                  createGameSeek(
+                    socket,
+                    gameTime,
+                    popupInputValues.increment as number,
+                    popupInputValues.color === 'random'
+                      ? 'random'
+                      : OPP_COLOR[popupInputValues.color],
+                    user
+                  );
+              }}
+              setError={setError}
+            />
+          </Modal>
+        )}
       </Layout>
     </>
   );

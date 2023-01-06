@@ -10,10 +10,10 @@ import flipIcon from '../../../../icons/flip-2.svg';
 
 import styles from '../../../../styles/History.module.scss';
 import Display from './Display';
-import { MoveNotationList } from 'crochess-api/dist/types/types';
+import { HistoryArr } from '../../../../types/types';
 
-interface MoveListProps {
-  moveList: MoveNotationList;
+interface HistoryProps {
+  moveList: HistoryArr;
   controls: {
     goBackToStart: () => void;
     goBackOneMove: () => void;
@@ -23,11 +23,11 @@ interface MoveListProps {
   flipBoard: () => void;
 }
 
-export default function MoveList({
+export default function History({
   moveList,
   controls,
   flipBoard,
-}: MoveListProps) {
+}: HistoryProps) {
   return (
     <section className={styles.main}>
       <Controls
@@ -65,4 +65,4 @@ export default function MoveList({
   );
 }
 
-export const MemoizedMoveList = React.memo(MoveList);
+export const MemoizedHistory = React.memo(History);

@@ -25,8 +25,8 @@ interface GameboardProps {
   view: Colors;
   board: Board;
   makeMove: (square: Square, promote?: PromotePieceType) => void;
-  pieceToMove: Square | null;
-  setPieceToMove: React.Dispatch<React.SetStateAction<Square | null>>;
+  squareToMove: Square | null;
+  setSquareToMove: React.Dispatch<React.SetStateAction<Square | null>>;
   getLegalMoves: (square: Square) => Square[] | undefined;
   activePlayer: Colors | null;
   validateMove: (square: Square) => boolean;
@@ -36,8 +36,8 @@ export default React.memo(function Gameboard({
   view,
   board,
   makeMove,
-  pieceToMove,
-  setPieceToMove,
+  squareToMove,
+  setSquareToMove,
   getLegalMoves,
   activePlayer,
   validateMove,
@@ -47,8 +47,8 @@ export default React.memo(function Gameboard({
     null
   );
 
-  function resetPieceToMove() {
-    setPieceToMove(null);
+  function resetSquareToMove() {
+    setSquareToMove(null);
     setHighlightedSquares([]);
   }
   return (
@@ -74,7 +74,7 @@ export default React.memo(function Gameboard({
               gridArea: s,
             }}
             onClick={() => {
-              resetPieceToMove();
+              resetSquareToMove();
               makeMove(s);
             }}
           >
@@ -91,7 +91,7 @@ export default React.memo(function Gameboard({
                     pieceSelectNode.dataset.piece as PromotePieceType
                   );
                   setPromotePopupSquare(null);
-                  resetPieceToMove();
+                  resetSquareToMove();
                 }}
                 square={promotePopupSquare}
                 view={view}
@@ -117,21 +117,21 @@ export default React.memo(function Gameboard({
                     ? () => {
                         if (activePlayer !== null && p[0] !== activePlayer) {
                           // if player is not spectator and piece doesnt belong to active player
-                          if (!pieceToMove) return; // means its not a capture
+                          if (!squareToMove) return; // means its not a capture
 
                           if (validateMove(square) && isPromote(p, square))
                             return setPromotePopupSquare(square);
 
-                          resetPieceToMove();
+                          resetSquareToMove();
                           makeMove(square);
                           return;
                         }
 
-                        if (square === pieceToMove) {
-                          resetPieceToMove();
+                        if (square === squareToMove) {
+                          resetSquareToMove();
                         } else {
                           // display legal moves
-                          setPieceToMove(square);
+                          setSquareToMove(square);
                           setHighlightedSquares(getLegalMoves(square) || []);
                         }
                       }

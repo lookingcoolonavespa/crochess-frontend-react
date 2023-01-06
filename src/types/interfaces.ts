@@ -12,8 +12,8 @@ import {
   GameState as FetchedState,
   GameSeekInterface as GameSeek,
 } from '@backend/interfaces';
-import { GameType, ClaimDrawRecord } from '@backend/types';
-import { TimeDetails, GameOverDetails, Optional } from './types';
+import { GameType, DrawRecord } from '@backend/types';
+import { TimeDetails, GameOverDetails, Optional, HistoryArr } from './types';
 import { Dispatch, SetStateAction, HTMLInputTypeAttribute } from 'react';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 
@@ -75,11 +75,36 @@ export interface FieldsInterface {
   };
 }
 
-export interface GameState extends Omit<FenState, 'halfmoves' | 'fullmoves'> {
+export interface GameStateSchema {
+  time_stamp_at_turn_start: number;
+  fen: string;
+  w_time: number;
+  b_time: number;
+  history: string;
+  moves: string;
+}
+export interface GameSchema {
+  w_id: string;
+  b_id: string;
+  time: number;
+  increment: number;
+  result: 'mate' | 'draw';
+  winner: Colors;
+  gameState: GameStateSchema;
+  drawRecord: DrawRecord;
+}
+
+export interface GameStateClient
+  extends Omit<FenState, 'halfmoves' | 'fullmoves'> {
   time: Record<Colors, number | null>;
-  claimDrawRecord: ClaimDrawRecord;
+  drawRecord: DrawRecord;
   gameOverDetails: GameOverDetails;
-  moveList: MoveNotationList;
+  history: HistoryArr;
+}
+
+export interface UpdatedState extends Omit<FenState, 'halfmoves' | 'fullmoves'> {
+  time: Record<Colors, number | null>;
+  history: HistoryArr;
 }
 
 export interface GameStatusInterface {
