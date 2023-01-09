@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { GameSeekInterface } from '../../types/interfaces';
 import { Client } from '@stomp/stompjs';
+import { useEffect, useRef, useState } from 'react';
+import { GameSeekInterface } from '../../types/interfaces';
 
 export default function useListOfGames(stompClient: Client) {
   const [listOfGames, setListOfGames] = useState<GameSeekInterface[]>([]);

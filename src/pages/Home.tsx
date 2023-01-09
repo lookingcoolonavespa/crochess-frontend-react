@@ -15,6 +15,8 @@ import { toMilliseconds } from '../utils/timerStuff';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import { seekColor } from '../types/types';
 import { useNavigate } from 'react-router-dom';
+import { setIdToCookie } from '../utils/misc';
+import { Colors } from 'crochess-api/dist/types/types';
 
 const Home = () => {
   const { user, socket } = useContext(UserContext);
@@ -42,12 +44,22 @@ const Home = () => {
   useEffect(
     function listenToAcceptedGameSeeks() {
       if (!socket || !user) return;
-      socket.subscribe('/user/queue/gameseeks', (message) => {
-        const gameId = message.body;
-        sessionStorage.setItem(gameId, user); // used to identify user once they move into a game, useful for if they refresh or disconnect
-        // setIdToCookie(data.gameId, data.color, data.cookieId);
-        navigate(`/${gameId}`);
-      });
+      const subscription = socket.subscribe(
+        '/user/queue/gameseeks',
+        (message) => {
+          type GameIdMsg = {
+            gameId: string;
+            playerColor: 'W' | 'B';
+          };
+          const { gameId, playerColor } = JSON.parse(message.body) as GameIdMsg;
+          setIdToCookie(gameId, playerColor.toLowerCase() as Colors, user);
+          navigate(`/${gameId}`);
+        }
+      );
+
+      return () => {
+        subscription.unsubscribe();
+      };
     },
     [navigate, user, socket]
   );

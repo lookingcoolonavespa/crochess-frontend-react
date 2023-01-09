@@ -1,21 +1,9 @@
-import {
-  Board,
-  Square,
-  Colors,
-  CastleRights,
-  MoveNotationList,
-  AllPieceMap,
-  FenStr,
-  SquareIdx,
-} from 'crochess-api/dist/types/types';
-import {
-  GameState as FetchedState,
-  GameSeekInterface as GameSeek,
-} from '@backend/interfaces';
-import { GameType, DrawRecord } from '@backend/types';
-import { TimeDetails, GameOverDetails, Optional, HistoryArr } from './types';
-import { Dispatch, SetStateAction, HTMLInputTypeAttribute } from 'react';
+import { GameSeekInterface as GameSeek } from '@backend/interfaces';
+import { DrawRecord } from '@backend/types';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
+import { Colors } from 'crochess-api/dist/types/types';
+import { Dispatch, HTMLInputTypeAttribute, SetStateAction } from 'react';
+import { GameOverDetails, HistoryArr, Move } from './types';
 
 export interface Socket extends WebSocket {
   _transport: {
@@ -80,7 +68,7 @@ export interface GameStateSchema {
   fen: string;
   w_time: number;
   b_time: number;
-  history: string;
+  history: string | null;
   moves: string;
 }
 export interface GameSchema {
@@ -100,12 +88,11 @@ export interface GameStateClient
   drawRecord: DrawRecord;
   gameOverDetails: GameOverDetails;
   history: HistoryArr;
+  moves: Move[];
 }
 
-export interface UpdatedState extends Omit<FenState, 'halfmoves' | 'fullmoves'> {
-  time: Record<Colors, number | null>;
-  history: HistoryArr;
-}
+export interface UpdatedState
+  extends Omit<GameStateClient, 'drawRecord' | 'gameOverDetails'> {}
 
 export interface GameStatusInterface {
   type:

@@ -10,7 +10,7 @@ interface GameDoorProps {
 }
 
 export default function GameDoor({ gameSeek }: GameDoorProps) {
-  const { user } = useContext(UserContext);
+  const { user, socket } = useContext(UserContext);
 
   const rootClasses = [
     styles.main,
@@ -23,10 +23,11 @@ export default function GameDoor({ gameSeek }: GameDoorProps) {
   return (
     <div
       className={rootClasses.join(' ')}
-      onClick={async (e) => {
+      onClick={(e) => {
         e.stopPropagation();
         try {
-          await createGame(user, gameSeek);
+          if (!user) return;
+          createGame(socket!, user, gameSeek);
         } catch (err) {
           console.log(err);
         }

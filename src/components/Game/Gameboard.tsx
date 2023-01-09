@@ -46,7 +46,6 @@ export default React.memo(function Gameboard({
   const [promotePopupSquare, setPromotePopupSquare] = useState<Square | null>(
     null
   );
-
   function resetSquareToMove() {
     setSquareToMove(null);
     setHighlightedSquares([]);

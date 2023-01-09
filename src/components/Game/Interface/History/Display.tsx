@@ -14,12 +14,13 @@ export default function Display({ list, styles }: HistoryDisplayProps) {
       <ol>
         {list &&
           list.map((move, i) => {
+            const [wMove, bMove] = move;
             return (
               <li key={i} className={styles.list_item}>
                 <p className={styles.move_no}>{i + 1}</p>
                 <div className={styles.moves_wrapper}>
-                  {/* <p>{whiteMove}</p>
-                  {blackMove && <p>{blackMove}</p>} */}
+                  <p>{wMove}</p>
+                  {bMove && <p>{bMove}</p>}
                 </div>
               </li>
             );

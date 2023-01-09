@@ -1,53 +1,67 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  useReducer,
-  Reducer,
-  useContext,
-} from 'react';
-import Gameboard from '../components/Game/Gameboard';
-import Interface from '../components/Game/Interface/Interface';
+import { convertFromFen } from 'crochess-api/dist/utils/fen';
 import {
   convertIdxToSquare,
   convertSquareToIdx,
 } from 'crochess-api/dist/utils/square';
-import { convertFromFen } from 'crochess-api/dist/utils/fen';
-import { isFenStr } from 'crochess-api/dist/utils/typeCheck';
+import {
+  Reducer,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import Gameboard from '../components/Game/Gameboard';
+import Interface from '../components/Game/Interface/Interface';
 
-import {
-  Colors,
-  Board,
-  Square,
-  MoveNotationList,
-  FenStr,
-  Enumerate,
-  AllPieceMap,
-  PromotePieceType,
-  Tuple,
-} from 'crochess-api/dist/types/types';
-import { parseCookies } from '../utils/misc';
-import styles from '../styles/ActiveGame.module.scss';
-import { fetchGame, sendMove } from '../utils/game';
-import {
-  GameSchema,
-  GameStateClient,
-  GameStateSchema,
-} from '../types/interfaces';
-import { ReducerActions, AllTimes, HistoryArr } from '../types/types';
-import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
-import { TimeDetails } from '../types/types';
-import { getActivePlayer } from '../utils/misc';
+import { Game, getChecks, getLegalMoves, isPromote } from 'crochess-api';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
-import { getLegalMoves, getChecks, isPromote } from 'crochess-api';
+import {
+  AllPieceMap,
+  Board,
+  Colors,
+  Enumerate,
+  PromotePieceType,
+  Square,
+} from 'crochess-api/dist/types/types';
+import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
 import {
   buildPieceMap,
   getEmptyPieceMap,
 } from 'crochess-api/dist/utils/pieceMap';
 import { useParams } from 'react-router-dom';
+import styles from '../styles/ActiveGame.module.scss';
+import {
+  GameSchema,
+  GameStateClient,
+  GameStateSchema,
+} from '../types/interfaces';
+import {
+  AllTimes,
+  HistoryArr,
+  Move,
+  ReducerActions,
+  TimeDetails,
+} from '../types/types';
 import { UserContext } from '../utils/contexts/UserContext';
+import { sendMove } from '../utils/game';
+import { getActivePlayer, parseCookies } from '../utils/misc';
+
+function getBoardStates(moves: Move[]): Board[] {
+  console.log(moves);
+  let game = new Game();
+  return moves.map((move) => {
+    const from = move.slice(0, 2) as Square;
+    const to = move.slice(2, 4) as Square;
+    const promote = move[5] as PromotePieceType | undefined;
+
+    game.makeMove(from, to, promote);
+
+    return [...game.board];
+  });
+}
 
 export default function ActiveGame() {
   const mounted = useRef(false);
@@ -84,7 +98,7 @@ export default function ActiveGame() {
       }
       case 'update time': {
         return {
-          ...gameState,
+          ...state,
           time: {
             [action.payload.color]: action.payload.time,
             [OPP_COLOR[action.payload.color]]:
@@ -100,6 +114,7 @@ export default function ActiveGame() {
     time: { w: null, b: null },
     activeColor: 'w',
     history: [] as HistoryArr,
+    moves: [] as string[],
     drawRecord: { w: false, b: false },
     gameOverDetails: null,
     castleRights: {
@@ -116,11 +131,12 @@ export default function ActiveGame() {
     board: Array(120),
   } as GameStateClient);
   const activePlayerRef = useRef<Colors | null>(null);
-  const movesRef = useRef<MoveNotationList>([]);
-  const [historyIdx, setHistoryIdx] =
-    useState<Enumerate<typeof movesRef.current.length>>(0);
+  const boardStates = useMemo(() => {
+    return getBoardStates(gameState.moves);
+  }, [gameState.moves]);
+  const [boardBeingViewed, setBoardBeingViewed] =
+    useState<Enumerate<typeof gameState.moves.length>>(0);
   const [squareToMove, setSquareToMove] = useState<Square | null>(null);
-
   const { gameId } = useParams();
 
   useEffect(function setMounted() {
@@ -132,13 +148,15 @@ export default function ActiveGame() {
   }, []);
 
   function parseHistory(history: string): HistoryArr {
-    return history.split(' ').reduce(function parseIntoPairs(acc, curr, i) {
-      if (i % 2 !== 0) {
-        acc.push([curr, '']);
-      } else acc[acc.length - 1][1] = curr;
+    return history === ''
+      ? []
+      : history.split(' ').reduce(function parseIntoPairs(acc, curr, i) {
+          if (i % 2 === 0) {
+            acc.push([curr, '']);
+          } else acc[acc.length - 1][1] = curr;
 
-      return acc;
-    }, [] as HistoryArr);
+          return acc;
+        }, [] as HistoryArr);
   }
 
   useEffect(
@@ -146,9 +164,7 @@ export default function ActiveGame() {
       socket?.subscribe(`/app/api/game/${gameId}`, (message) => {
         const game: GameSchema = JSON.parse(message.body);
         const gameState = game.gameState;
-
         const boardState = convertFromFen(gameState.fen) as FenState;
-
         if (!game.result) {
           timeDetailsRef.current[boardState.activeColor] = {
             timeLeftAtTurnStart: gameState[`${boardState.activeColor}_time`],
@@ -163,8 +179,8 @@ export default function ActiveGame() {
           game.w_id,
           game.b_id
         );
-        movesRef.current = gameState.moves.split(' ');
-        setHistoryIdx(gameState.history.length - 1);
+        const history = gameState.history?.split(' ');
+        setBoardBeingViewed(history ? history.length - 1 : 0);
         setGameboardView(() => activePlayerRef.current || 'w');
 
         let time: AllTimes = { w: 0, b: 0 };
@@ -187,6 +203,8 @@ export default function ActiveGame() {
           };
         }
 
+        const moves = gameState.moves || '';
+
         dispatch({
           type: 'init',
           payload: {
@@ -194,7 +212,8 @@ export default function ActiveGame() {
             board: boardState.board,
             activeColor: boardState.activeColor,
             drawRecord: game.drawRecord,
-            history: parseHistory(gameState.history),
+            history: parseHistory(gameState.history || ''),
+            moves: moves.split(' ') as Move[],
             enPassant: boardState.enPassant,
             castleRights: boardState.castleRights,
             gameOverDetails: game.result
@@ -214,7 +233,7 @@ export default function ActiveGame() {
     function subscribeToGame() {
       if (!socket) return;
       const subscription = socket.subscribe(
-        `/topics/api/game/${gameId}`,
+        `/topic/api/game/${gameId}`,
         (message) => {
           const data = JSON.parse(message.body);
 
@@ -235,10 +254,9 @@ export default function ActiveGame() {
                   gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
               } as AllTimes;
 
-              movesRef.current = gameState.moves.split(' ');
-              setHistoryIdx((prev) => {
-                if (prev === movesRef.current.length - 2)
-                  return movesRef.current.length - 1;
+              const moves = gameState.moves.split(' ') as Move[];
+              setBoardBeingViewed((prev) => {
+                if (prev === moves.length - 2) return moves.length - 1;
                 else return prev;
               });
 
@@ -247,7 +265,8 @@ export default function ActiveGame() {
                 payload: {
                   time,
                   activeColor: boardState.activeColor,
-                  history: parseHistory(gameState.history),
+                  history: parseHistory(gameState.history || ''),
+                  moves: moves,
                   enPassant: boardState.enPassant,
                   castleRights: boardState.castleRights,
                   board: boardState.board,
@@ -313,7 +332,7 @@ export default function ActiveGame() {
   );
 
   const validateMove = useCallback(
-    (square: Square) => {
+    (square: Square): boolean => {
       if (!gameState.board || !squareToMove) return false;
       if (activePlayerRef.current !== gameState.activeColor) return false;
 
@@ -363,17 +382,19 @@ export default function ActiveGame() {
   const makeMove = useCallback(
     async (to: Square, promote: PromotePieceType | '' = '') => {
       // cant make move if player is viewing past positions
-      if (historyIdx !== movesRef.current.length - 1) return;
+      if (boardBeingViewed !== gameState.moves.length - 1) return;
       if (!squareToMove) return;
 
       const valid = validateMove(to);
       if (!valid) return;
       if (promote && !checkPromotion(to)) return;
 
+      // get the playerId from cookie so players can play from multiple tabs
       const cookieObj = parseCookies(document.cookie);
       const playerId = cookieObj[`${gameId}(${activePlayerRef.current})`];
       try {
-        await sendMove(
+        sendMove(
+          socket!,
           gameId as string,
           playerId,
           `${squareToMove}${to}${promote}`
@@ -382,35 +403,43 @@ export default function ActiveGame() {
         console.log(err);
       }
     },
-    [gameId, validateMove, checkPromotion, squareToMove, historyIdx]
+    [
+      socket,
+      gameId,
+      validateMove,
+      checkPromotion,
+      squareToMove,
+      boardBeingViewed,
+      gameState.moves.length,
+    ]
   );
 
   const moveListControls = useMemo(() => {
     return {
       goBackToStart: () => {
-        if (!movesRef.current.length) return;
-        setHistoryIdx(0);
+        if (!gameState.moves.length) return;
+        setBoardBeingViewed(0);
       },
       goBackOneMove: () => {
-        if (!movesRef.current.length) return;
-        setHistoryIdx((prev) => {
+        if (!gameState.moves.length) return;
+        setBoardBeingViewed((prev) => {
           if (prev === 0) return prev;
           return prev - 1;
         });
       },
       goForwardOneMove: () => {
-        if (!movesRef.current.length) return;
-        setHistoryIdx((prev) => {
-          if (prev === movesRef.current.length - 1) return prev;
+        if (!gameState.moves.length) return;
+        setBoardBeingViewed((prev) => {
+          if (prev === gameState.moves.length - 1) return prev;
           return prev + 1;
         });
       },
       goToCurrentMove: () => {
-        if (!movesRef.current.length) return;
-        setHistoryIdx(movesRef.current.length - 1);
+        if (!gameState.moves.length) return;
+        setBoardBeingViewed(gameState.moves.length - 1);
       },
     };
-  }, []);
+  }, [gameState.moves.length]);
 
   const flipBoard = useCallback(() => {
     setGameboardView((prev) => {
@@ -424,18 +453,12 @@ export default function ActiveGame() {
       payload: { color, time },
     });
   }
-
-  const boardBeingViewed = useMemo(() => {
-    if (movesRef.current.length)
-      return convertFromFen(movesRef.current[historyIdx])?.board;
-  }, [historyIdx, gameState]);
-
   return (
     <main className={styles.main}>
       <div className={styles['game-contents']}>
         <Gameboard
           view={gameboardView}
-          board={boardBeingViewed as Board}
+          board={boardStates[boardBeingViewed]}
           makeMove={makeMove}
           squareToMove={squareToMove}
           setSquareToMove={setSquareToMove}

@@ -7,7 +7,7 @@ import {
   PromotePieceType,
 } from 'crochess-api/dist/types/types';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
-import { getRdmColor } from './misc';
+import { getRdmColor, setIdToCookie } from './misc';
 import { Client } from '@stomp/stompjs';
 
 export function createGameSeek(
@@ -28,10 +28,11 @@ export function createGameSeek(
   });
 }
 
-export async function createGame(
+export function createGame(
+  stompClient: Client,
   challenger: string,
   gameSeek: GameSeekInterface
-) {
+): void {
   if (gameSeek.color.toLowerCase() === 'random') gameSeek.color = getRdmColor();
 
   let whitePlayer, blackPlayer;
@@ -46,46 +47,30 @@ export async function createGame(
       break;
   }
 
-  const res = await axios.post(
-    `${process.env.REACT_APP_URL_BACKEND}/api/game`,
-    {
+  stompClient.publish({
+    destination: '/app/api/game',
+    body: JSON.stringify({
       w_id: whitePlayer,
       b_id: blackPlayer,
       time: gameSeek.time,
       increment: gameSeek.increment,
-    }
-  );
-  if (res.status !== 200)
-    throw new Error('something went wrong fetching the game');
-
-  return await res.data;
+    }),
+  });
 }
 
-export async function fetchGame(gameId: string) {
-  if (!gameId) return;
-  const res = await axios.get(
-    `${process.env.REACT_APP_URL_BACKEND}/api/games/${gameId}`
-  );
-  if (!res || res.status !== 200 || res.statusText !== 'OK')
-    throw new Error('something went wrong fetching game');
-
-  return await res.data;
-}
-
-export async function sendMove(
+export function sendMove(
+  stompClient: Client,
   gameId: string,
   playerId: string,
   move: `${Square}${Square}` | `${Square}${Square}${PromotePieceType}`
 ) {
-  const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/move`,
-    {
+  stompClient.publish({
+    destination: `/app/api/game/${gameId}`,
+    body: JSON.stringify({
       playerId,
       move,
-    }
-  );
-  if (!res || res.status !== 200 || res.statusText !== 'OK')
-    throw new Error('something went wrong making move');
+    }),
+  });
 }
 
 export async function offerDraw(

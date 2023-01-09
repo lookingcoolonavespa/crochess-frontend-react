@@ -20,8 +20,9 @@ export function getKeyByValue(
   return Object.keys(obj).find((key) => obj[key] === val);
 }
 
-export function setIdToCookie(gameId: string, color: Colors, id: string) {
-  document.cookie = `${gameId}(${color})=${id};max-age=${
+export function setIdToCookie(gameId: string, color: Colors, userId: string) {
+  // set the active playerIds to a cookie so we can tell between active players and spectators
+  document.cookie = `${gameId}(${color})=${userId};max-age=${
     60 * 60 * 24
   };samesite=strict`;
 }
@@ -43,11 +44,11 @@ export function getActivePlayer(
   blackId: string
 ): Colors | null {
   const cookieObj = parseCookies(document.cookie);
-
   switch (true) {
     case cookieObj[`${gameId}(w)`] === whiteId &&
       cookieObj[`${gameId}(b)`] === blackId: {
-      const user = sessionStorage.getItem(gameId);
+      // player is playing on two separate tabs
+      const user = sessionStorage.getItem('user');
       if (user === whiteId) return 'w';
       if (user === blackId) return 'b';
       return null;

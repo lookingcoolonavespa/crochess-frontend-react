@@ -20,12 +20,13 @@ export default function useConnectToSocket(
         ) as IStompSocket;
       };
 
-      const userId = getRdmInt().toString();
-
+      const userId = sessionStorage.getItem('user') || getRdmInt().toString();
       stompClient.connectHeaders = { name: userId };
       stompClient.activate();
       stompClient.onConnect = () => {
         setUser(userId);
+        sessionStorage.setItem('user', userId);
+        // used to identify user if they refresh or disconnect
       };
 
       socketRef.current = stompClient;

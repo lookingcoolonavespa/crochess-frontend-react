@@ -1,5 +1,5 @@
 import { DrawRecord } from '@backend/types';
-import { Colors, MoveNotation, Tuple } from 'crochess-api/dist/types/types';
+import { Colors, MoveNotation, PromotePieceType, Square, Tuple } from 'crochess-api/dist/types/types';
 import { GameSchema, GameStateClient, UpdatedState } from './interfaces';
 
 export type seekColor = Colors | 'random';
@@ -23,6 +23,8 @@ export type Time = {
   color: Colors;
   time: number;
 };
+
+export type Move = `${Square}${Square}` | `${Square}${Square}${PromotePieceType}`;
 
 export type ReducerActions =
   | {

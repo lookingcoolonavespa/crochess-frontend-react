@@ -12,7 +12,7 @@ interface ListOfGamesProps {
 
 export default function ListOfGames({ active }: ListOfGamesProps) {
   const { socket } = useContext(UserContext);
-  const { listOfGames } = useListOfGames(socket);
+  const { listOfGames } = useListOfGames(socket!);
 
   const rootClasses = [styles.main];
   if (!active) rootClasses.push('inactive');

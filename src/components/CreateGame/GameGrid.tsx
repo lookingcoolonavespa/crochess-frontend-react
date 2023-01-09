@@ -48,7 +48,8 @@ const GameGrid = ({ active, className, createCustomGame }: GameGridProps) => {
               setActiveSearch(i);
               const time = toMilliseconds({ minutes: tc.time });
               try {
-                createGameSeek(socket, time, tc.increment, 'random', user);
+                if (!user) return;
+                createGameSeek(socket!, time, tc.increment, 'random', user);
               } catch (err) {
                 console.log(err);
               }
