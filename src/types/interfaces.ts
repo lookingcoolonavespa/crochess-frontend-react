@@ -3,7 +3,7 @@ import { DrawRecord } from '@backend/types';
 import { GameState as FenState } from 'crochess-api/dist/types/interfaces';
 import { Colors } from 'crochess-api/dist/types/types';
 import { Dispatch, HTMLInputTypeAttribute, SetStateAction } from 'react';
-import { GameOverDetails, HistoryArr, Move } from './types';
+import { HistoryArr, Move } from './types';
 
 export interface Socket extends WebSocket {
   _transport: {
@@ -63,6 +63,13 @@ export interface FieldsInterface {
   };
 }
 
+export interface GameOverDetails {
+  winner: Colors | null;
+  result: 'mate' | 'draw' | 'time' | null;
+}
+
+export interface GameOverGameState extends GameStateSchema, GameOverDetails {}
+
 export interface GameStateSchema {
   time_stamp_at_turn_start: number;
   fen: string;
@@ -76,8 +83,7 @@ export interface GameSchema {
   b_id: string;
   time: number;
   increment: number;
-  result: 'mate' | 'draw';
-  winner: Colors;
+  details: GameOverDetails;
   gameState: GameStateSchema;
   drawRecord: DrawRecord;
 }
@@ -93,6 +99,9 @@ export interface GameStateClient
 
 export interface UpdatedState
   extends Omit<GameStateClient, 'drawRecord' | 'gameOverDetails'> {}
+
+export interface UpdatedGameOverGameState
+  extends Omit<GameStateClient, 'drawRecord'> {}
 
 export interface GameStatusInterface {
   type:

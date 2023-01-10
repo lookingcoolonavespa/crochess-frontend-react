@@ -42,6 +42,8 @@ export default function useListOfGames(stompClient: Client) {
         const data: MessageBody = JSON.parse(message.body);
         switch (data.event) {
           case 'insert': {
+            console.log(data.payload);
+
             setListOfGames((prev) => prev.concat(data.payload));
             break;
           }

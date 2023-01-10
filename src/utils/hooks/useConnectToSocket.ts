@@ -4,8 +4,7 @@ import { Client, IStompSocket } from '@stomp/stompjs';
 import { getRdmInt } from '../misc';
 
 export default function useConnectToSocket(
-  setUser: React.Dispatch<React.SetStateAction<undefined | string>>,
-  user: string | undefined
+  setUser: React.Dispatch<React.SetStateAction<undefined | string>>
 ) {
   const socketRef = useRef<Client | null>(null);
 

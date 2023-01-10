@@ -19,6 +19,14 @@ export default function Timer({
   active,
 }: TimerProps) {
   const classNames = [className];
+  console.table({
+    className,
+    timeLeftAtStart,
+    timeStampAtStart,
+    time,
+    setTime,
+    active,
+  });
   if (active) classNames.push('active');
 
   useEffect(() => {

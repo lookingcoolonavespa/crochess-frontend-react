@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import closeSVG from '../../icons/close-line.svg';
 import checkSVG from '../../icons/check-line.svg';
@@ -10,6 +10,7 @@ import { SetStateAction } from 'react';
 import { parseCookies } from '../../utils/misc';
 import { Colors } from 'crochess-api/dist/types/types';
 import { useParams } from 'react-router-dom';
+import { UserContext } from '../../utils/contexts/UserContext';
 
 interface GameStatusDisplayProps {
   styles: { [key: string]: string };
@@ -18,36 +19,13 @@ interface GameStatusDisplayProps {
   activePlayer: Colors;
 }
 
-async function asyncErrorHandler(
-  cb:
-    | ((gameId: string, playerId: string) => Promise<void>)
-    | ((
-        gameId: string,
-        playerId: string,
-        activePlayer: Colors
-      ) => Promise<void>),
-  params: {
-    gameId: string;
-    playerId: string;
-    activePlayer?: Colors;
-  },
-  close?: () => void
-) {
-  const { gameId, playerId, activePlayer } = params;
-  try {
-    await cb(gameId, playerId, activePlayer as Colors);
-    close && close();
-  } catch (err) {
-    console.log(err);
-  }
-}
-
 export default function GameStatusDisplay({
   setStatus,
   styles,
   status,
   activePlayer,
 }: GameStatusDisplayProps) {
+  const { socket, user } = useContext(UserContext);
   const { gameId } = useParams();
 
   const playerId = parseCookies(document.cookie)[`${gameId}(${activePlayer})`];
@@ -70,12 +48,11 @@ export default function GameStatusDisplay({
                     <p>Game over</p>
                     {status.payload.winner && (
                       <p>
-                        {status.payload.winner} won by {status.payload.reason}
+                        {status.payload.winner === 'w' ? 'White' : 'Black'} won
+                        by {status.payload.result}
                       </p>
                     )}
-                    {!status.payload.winner && (
-                      <p>Draw by {status.payload.reason}</p>
-                    )}
+                    {!status.payload.winner && <p>Game is a draw</p>}
                   </>
                 )}
               </>
@@ -92,13 +69,13 @@ export default function GameStatusDisplay({
                   <FlatBtn
                     icon={{ src: checkSVG, alt: 'confirm' }}
                     size="small"
-                    onClick={() =>
-                      asyncErrorHandler(resign, {
-                        activePlayer,
-                        playerId,
-                        gameId: gameId as string,
-                      })
-                    }
+                    onClick={() => {
+                      try {
+                        resign();
+                      } catch (err) {
+                        console.log(err);
+                      }
+                    }}
                   />
                 </div>
               </>
@@ -111,21 +88,23 @@ export default function GameStatusDisplay({
                     icon={{ src: closeSVG, alt: 'cancel' }}
                     size="small"
                     onClick={() => {
-                      asyncErrorHandler(
-                        denyDraw,
-                        { playerId, gameId: gameId as string },
-                        () => setStatus(undefined)
-                      );
+                      try {
+                        denyDraw(socket!, gameId!);
+                        setStatus(undefined);
+                      } catch (err) {
+                        console.log(err);
+                      }
                     }}
                   />
                   <FlatBtn
                     icon={{ src: checkSVG, alt: 'confirm' }}
                     size="small"
                     onClick={() => {
-                      asyncErrorHandler(claimDraw, {
-                        playerId,
-                        gameId: gameId as string,
-                      });
+                      try {
+                        claimDraw(socket!, gameId!);
+                      } catch (err) {
+                        console.log(err);
+                      }
                     }}
                   />
                 </div>
@@ -145,11 +124,11 @@ export default function GameStatusDisplay({
                     icon={{ src: checkSVG, alt: 'confirm' }}
                     size="small"
                     onClick={() => {
-                      asyncErrorHandler(offerDraw, {
-                        playerId,
-                        activePlayer,
-                        gameId: gameId as string,
-                      });
+                      try {
+                        offerDraw(socket!, gameId!, activePlayer);
+                      } catch (err) {
+                        console.log(err);
+                      }
                     }}
                   />
                 </div>

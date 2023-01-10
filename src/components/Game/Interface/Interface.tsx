@@ -7,8 +7,9 @@ import { createControlBtnObj } from '../../../utils/misc';
 import flagIcon from '../../../icons/flag-fill.svg';
 import TimerBar from './TimerBar';
 import { MemoizedGameStatusDisplay } from '../GameStatusDisplay';
-import { GameOverDetails, HistoryArr } from '../../../types/types';
+import { HistoryArr } from '../../../types/types';
 import { Colors } from 'crochess-api/dist/types/types';
+import { GameOverDetails } from '../../../types/interfaces';
 
 interface InterfaceProps {
   activePlayer: Colors | null;
@@ -23,7 +24,7 @@ interface InterfaceProps {
   };
   view: Colors;
   flipBoard: () => void;
-  gameOverDetails?: GameOverDetails;
+  gameOverDetails: GameOverDetails;
   offeredDraw: boolean;
   claimDraw: boolean;
 }
@@ -66,7 +67,7 @@ export default function Interface({
   });
   useEffect(() => {
     const currentVariables = {
-      gameOver: !!gameOverDetails,
+      gameOver: !!gameOverDetails?.result,
       offeredDraw,
       claimDraw,
       resignConfirmation,
@@ -166,7 +167,7 @@ export default function Interface({
           controls={historyControls}
         />
       </div>
-      {activePlayer && !gameOverDetails && (
+      {activePlayer && !gameOverDetails.result && (
         <MemoizedControls
           className={styles.main_controls}
           list={mainControls}

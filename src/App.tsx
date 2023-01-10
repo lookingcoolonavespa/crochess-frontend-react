@@ -9,7 +9,7 @@ import { UserContext } from './utils/contexts/UserContext';
 
 export default function App() {
   const [user, setUser] = useState<undefined | string>();
-  const socketRef = useConnectToSocket(setUser, user);
+  const socketRef = useConnectToSocket(setUser);
 
   return (
     <UserContext.Provider value={{ user, setUser, socket: socketRef.current }}>

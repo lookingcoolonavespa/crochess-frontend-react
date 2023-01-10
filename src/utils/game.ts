@@ -1,14 +1,13 @@
+import { Client } from '@stomp/stompjs';
 import axios from 'axios';
-import { GameSeekInterface } from '../types/interfaces';
 import {
-  PieceType,
-  Square,
   Colors,
   PromotePieceType,
+  Square,
 } from 'crochess-api/dist/types/types';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
-import { getRdmColor, setIdToCookie } from './misc';
-import { Client } from '@stomp/stompjs';
+import { GameSeekInterface } from '../types/interfaces';
+import { getRdmColor } from './misc';
 
 export function createGameSeek(
   stompClient: Client,
@@ -73,76 +72,47 @@ export function sendMove(
   });
 }
 
-export async function offerDraw(
+export function offerDraw(
+  stompClient: Client,
   gameId: string,
-  playerId: string,
   offerer: Colors
 ) {
   const oppColor = OPP_COLOR[offerer];
-
-  const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/draw`,
-    {
-      playerId,
-      claimDraw: {
-        [offerer]: false,
-        [oppColor]: true,
-      },
-    }
-  );
-
-  if (!res || res.status !== 200 || res.statusText !== 'OK')
-    throw new Error('something went wrong offering draw');
+  stompClient.publish({
+    destination: `/app/api/game/${gameId}/draw/update`,
+    body: JSON.stringify({
+      [offerer]: false,
+      [oppColor]: true,
+    }),
+  });
 }
 
-export async function denyDraw(gameId: string, playerId: string) {
-  const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/draw`,
-    {
-      playerId,
-      claimDraw: {
-        w: false,
-        b: false,
-      },
-    }
-  );
-
-  if (!res || res.status !== 200 || res.statusText !== 'OK')
-    throw new Error('something went wrong claiming draw');
+export async function denyDraw(stompClient: Client, gameId: string) {
+  stompClient.publish({
+    destination: `/app/api/game/${gameId}/draw/update`,
+    body: JSON.stringify({
+      w: false,
+      b: false,
+    }),
+  });
 }
 
-export async function claimDraw(gameId: string, playerId: string) {
-  const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/games/${gameId}/status`,
-    {
-      playerId,
-      winner: null,
-      causeOfDeath: 'agreement',
-    }
-  );
-
-  if (!res || res.status !== 200 || res.statusText !== 'OK')
-    throw new Error('something went wrong claiming draw');
+export async function claimDraw(stompClient: Client, gameId: string) {
+  stompClient.publish({
+    destination: `/app/api/game/${gameId}/draw/claim`,
+  });
 }
 
 export async function resign(
+  stompClient: Client,
   gameId: string,
-  playerId: string,
   resigning: Colors
 ) {
-  const winner = OPP_COLOR[resigning];
-
-  const res = await axios.patch(
-    `${process.env.REACT_APP_URL_BACKEND}/game/${gameId}/status`,
-    {
-      playerId,
-      winner,
-      causeOfDeath: 'resignation',
-    }
-  );
-
-  console.log(res);
-
-  if (!res || res.status !== 200 || res.statusText !== 'OK')
-    throw new Error('something went wrong resigning');
+  stompClient.publish({
+    destination: `/app/api/game/${gameId}/draw/update`,
+    body: JSON.stringify({
+      w: false,
+      b: false,
+    }),
+  });
 }

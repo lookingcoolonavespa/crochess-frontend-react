@@ -34,6 +34,7 @@ import {
 import { useParams } from 'react-router-dom';
 import styles from '../styles/ActiveGame.module.scss';
 import {
+  GameOverGameState,
   GameSchema,
   GameStateClient,
   GameStateSchema,
@@ -48,9 +49,9 @@ import {
 import { UserContext } from '../utils/contexts/UserContext';
 import { sendMove } from '../utils/game';
 import { getActivePlayer, parseCookies } from '../utils/misc';
+import { DrawRecord } from '@backend/types';
 
 function getBoardStates(moves: Move[]): Board[] {
-  console.log(moves);
   let game = new Game();
   return moves.map((move) => {
     const from = move.slice(0, 2) as Square;
@@ -90,6 +91,7 @@ export default function ActiveGame() {
       case 'init': {
         return action.payload;
       }
+      case 'update on move game-over':
       case 'update on move': {
         return { ...state, ...action.payload };
       }
@@ -116,7 +118,10 @@ export default function ActiveGame() {
     history: [] as HistoryArr,
     moves: [] as string[],
     drawRecord: { w: false, b: false },
-    gameOverDetails: null,
+    gameOverDetails: {
+      result: null,
+      winner: null,
+    },
     castleRights: {
       w: {
         k: false,
@@ -163,9 +168,10 @@ export default function ActiveGame() {
     function onFirstLoad() {
       socket?.subscribe(`/app/api/game/${gameId}`, (message) => {
         const game: GameSchema = JSON.parse(message.body);
+        console.log(game);
         const gameState = game.gameState;
         const boardState = convertFromFen(gameState.fen) as FenState;
-        if (!game.result) {
+        if (!game.details.result) {
           timeDetailsRef.current[boardState.activeColor] = {
             timeLeftAtTurnStart: gameState[`${boardState.activeColor}_time`],
             // if server has stamp use that one, otherwise initiate one
@@ -216,12 +222,10 @@ export default function ActiveGame() {
             moves: moves.split(' ') as Move[],
             enPassant: boardState.enPassant,
             castleRights: boardState.castleRights,
-            gameOverDetails: game.result
-              ? {
-                  winner: game.winner,
-                  reason: game.result,
-                }
-              : null,
+            gameOverDetails: {
+              winner: game.details.winner,
+              result: game.details.result,
+            },
           },
         });
       });
@@ -235,11 +239,25 @@ export default function ActiveGame() {
       const subscription = socket.subscribe(
         `/topic/api/game/${gameId}`,
         (message) => {
-          const data = JSON.parse(message.body);
+          interface UpdateOnMoveGameOver {
+            event: 'update on move game-over';
+            payload: GameOverGameState;
+          }
+          interface UpdateOnMove {
+            event: 'update';
+            payload: GameStateSchema;
+          }
+          interface UpdateDraw {
+            event: 'update draw';
+            payload: DrawRecord;
+          }
+          type Message = UpdateOnMove | UpdateOnMoveGameOver | UpdateDraw;
+          const data = JSON.parse(message.body) as Message;
 
           switch (data.event) {
+            case 'update on move game-over':
             case 'update': {
-              const gameState = data.payload as GameStateSchema;
+              const gameState = data.payload;
               const boardState = convertFromFen(gameState.fen) as FenState;
 
               const elapsedTime =
@@ -260,6 +278,26 @@ export default function ActiveGame() {
                 else return prev;
               });
 
+              if (data.event === 'update on move game-over') {
+                const gs = data.payload;
+                dispatch({
+                  type: data.event,
+                  payload: {
+                    time,
+                    activeColor: boardState.activeColor,
+                    history: parseHistory(gameState.history || ''),
+                    moves: moves,
+                    enPassant: boardState.enPassant,
+                    castleRights: boardState.castleRights,
+                    board: boardState.board,
+                    gameOverDetails: {
+                      result: gs.result,
+                      winner: gs.winner,
+                    },
+                  },
+                });
+              }
+
               dispatch({
                 type: 'update on move',
                 payload: {
@@ -278,7 +316,7 @@ export default function ActiveGame() {
             case 'update draw': {
               dispatch({
                 type: 'update draw',
-                payload: data,
+                payload: data.payload,
               });
             }
           }
@@ -484,7 +522,9 @@ export default function ActiveGame() {
             timeLeftAtStart: timeDetailsRef.current.w.timeLeftAtTurnStart,
             time: gameState.time.w,
             setTime: (time: number) => updateTime('w', time),
-            active: !gameState.gameOverDetails && gameState.activeColor === 'w',
+            active:
+              !gameState.gameOverDetails.result &&
+              gameState.activeColor === 'w',
           }}
           blackDetails={{
             maxTime: maxTimeRef.current,
@@ -492,7 +532,9 @@ export default function ActiveGame() {
             timeLeftAtStart: timeDetailsRef.current.b.timeLeftAtTurnStart,
             time: gameState.time.b,
             setTime: (time: number) => updateTime('b', time),
-            active: !gameState.gameOverDetails && gameState.activeColor === 'b',
+            active:
+              !gameState.gameOverDetails.result &&
+              gameState.activeColor === 'b',
           }}
           history={gameState.history}
           historyControls={moveListControls}

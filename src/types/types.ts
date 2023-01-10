@@ -1,13 +1,18 @@
 import { DrawRecord } from '@backend/types';
-import { Colors, MoveNotation, PromotePieceType, Square, Tuple } from 'crochess-api/dist/types/types';
-import { GameSchema, GameStateClient, UpdatedState } from './interfaces';
+import {
+  Colors,
+  MoveNotation,
+  PromotePieceType,
+  Square,
+  Tuple,
+} from 'crochess-api/dist/types/types';
+import {
+  GameStateClient,
+  UpdatedGameOverGameState,
+  UpdatedState,
+} from './interfaces';
 
 export type seekColor = Colors | 'random';
-
-export type GameOverDetails = {
-  winner: Colors | null;
-  reason: string;
-} | null;
 
 export type TimeDetails = Record<
   Colors,
@@ -24,7 +29,9 @@ export type Time = {
   time: number;
 };
 
-export type Move = `${Square}${Square}` | `${Square}${Square}${PromotePieceType}`;
+export type Move =
+  | `${Square}${Square}`
+  | `${Square}${Square}${PromotePieceType}`;
 
 export type ReducerActions =
   | {
@@ -34,6 +41,10 @@ export type ReducerActions =
   | {
       type: 'update on move';
       payload: UpdatedState;
+    }
+  | {
+      type: 'update on move game-over';
+      payload: UpdatedGameOverGameState;
     }
   | {
       type: 'update draw';
