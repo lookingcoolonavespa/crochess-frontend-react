@@ -3,9 +3,8 @@
 $timer-height: 50px;
 
 .main {
-  position: absolute;
-  left: 100%;
-  margin-left: 50px;
+  margin-left: 10%;
+  position: relative;
   width: 100%;
   max-width: 400px;
   background-color: var(--foreground);
@@ -26,7 +25,6 @@ $timer-height: 50px;
 .timer {
   @include mixins.flexCenter(row);
 
-  position: absolute;
   left: 0;
   height: 50px;
   width: 50%;

@@ -9,7 +9,7 @@ import styles from '../styles/Home.module.scss';
 
 import Popup from '../components/Popup';
 import useInputValues from '../utils/hooks/useInputValues';
-import { createGameSeek } from '../utils/game';
+import { createGameSeek, initPlayEngine } from '../utils/game';
 import Modal from '../components/Modal';
 import { toMilliseconds } from '../utils/timerStuff';
 import { OPP_COLOR } from 'crochess-api/dist/utils/constants';
@@ -172,6 +172,16 @@ const Home = () => {
             />
           </Modal>
         )}
+        <button
+          className={styles.underline_btn}
+          type="button"
+          onClick={() => {
+            if (!user) return;
+            initPlayEngine(socket!, user);
+          }}
+        >
+          Play against engine
+        </button>
       </Layout>
     </>
   );

@@ -43,7 +43,7 @@ export type ReducerActions =
       payload: UpdatedState;
     }
   | {
-      type: 'update on move game-over';
+      type: 'game over';
       payload: UpdatedGameOverGameState;
     }
   | {

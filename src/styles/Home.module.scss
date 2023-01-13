@@ -1,7 +1,8 @@
 @use './mixins';
 
 .main {
-  @include mixins.flexCenter(row);
+  @include mixins.flexCenter(column);
+  row-gap: 5%;
   height: 100%;
 }
 
@@ -16,6 +17,10 @@
   background-color: var(--foreground);
   border-radius: 5px;
   border-top-left-radius: 0;
+}
+
+.underline_btn:hover {
+  text-decoration: underline;
 }
 
 .tabs {

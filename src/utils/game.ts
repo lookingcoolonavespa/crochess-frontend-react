@@ -1,5 +1,4 @@
 import { Client } from '@stomp/stompjs';
-import axios from 'axios';
 import {
   Colors,
   PromotePieceType,
@@ -72,6 +71,31 @@ export function sendMove(
   });
 }
 
+export function initPlayEngine(stompClient: Client, user: string) {
+  const userColor = getRdmColor();
+  let whitePlayer, blackPlayer;
+  switch (userColor) {
+    case 'w':
+      whitePlayer = user;
+      blackPlayer = 'engine';
+      break;
+    case 'b':
+      whitePlayer = 'engine';
+      blackPlayer = user;
+      break;
+  }
+
+  stompClient.publish({
+    destination: '/app/api/game',
+    body: JSON.stringify({
+      w_id: whitePlayer,
+      b_id: blackPlayer,
+      time: 1,
+      increment: 0,
+    }),
+  });
+}
+
 export function offerDraw(
   stompClient: Client,
   gameId: string,
@@ -79,7 +103,7 @@ export function offerDraw(
 ) {
   const oppColor = OPP_COLOR[offerer];
   stompClient.publish({
-    destination: `/app/api/game/${gameId}/draw/update`,
+    destination: `/app/api/game/${gameId}/draw`,
     body: JSON.stringify({
       [offerer]: false,
       [oppColor]: true,
@@ -89,7 +113,7 @@ export function offerDraw(
 
 export async function denyDraw(stompClient: Client, gameId: string) {
   stompClient.publish({
-    destination: `/app/api/game/${gameId}/draw/update`,
+    destination: `/app/api/game/${gameId}/draw`,
     body: JSON.stringify({
       w: false,
       b: false,
@@ -99,7 +123,11 @@ export async function denyDraw(stompClient: Client, gameId: string) {
 
 export async function claimDraw(stompClient: Client, gameId: string) {
   stompClient.publish({
-    destination: `/app/api/game/${gameId}/draw/claim`,
+    destination: `/app/api/game/${gameId}/resign-draw`,
+    body: JSON.stringify({
+      winner: null,
+      result: 'draw',
+    }),
   });
 }
 
@@ -109,10 +137,10 @@ export async function resign(
   resigning: Colors
 ) {
   stompClient.publish({
-    destination: `/app/api/game/${gameId}/draw/update`,
+    destination: `/app/api/game/${gameId}/resign-draw`,
     body: JSON.stringify({
-      w: false,
-      b: false,
+      winner: OPP_COLOR[resigning],
+      result: 'resignation',
     }),
   });
 }

@@ -1,16 +1,15 @@
 import React, { useContext } from 'react';
 
-import closeSVG from '../../icons/close-line.svg';
-import checkSVG from '../../icons/check-line.svg';
-import { GameStatusInterface } from '../../types/interfaces';
-import IconBtn from '../IconBtn';
-import FlatBtn from '../FlatBtn';
-import { resign, claimDraw, offerDraw, denyDraw } from '../../utils/game';
-import { SetStateAction } from 'react';
-import { parseCookies } from '../../utils/misc';
 import { Colors } from 'crochess-api/dist/types/types';
+import { SetStateAction } from 'react';
 import { useParams } from 'react-router-dom';
+import checkSVG from '../../icons/check-line.svg';
+import closeSVG from '../../icons/close-line.svg';
+import { GameStatusInterface } from '../../types/interfaces';
 import { UserContext } from '../../utils/contexts/UserContext';
+import { claimDraw, denyDraw, offerDraw, resign } from '../../utils/game';
+import FlatBtn from '../FlatBtn';
+import IconBtn from '../IconBtn';
 
 interface GameStatusDisplayProps {
   styles: { [key: string]: string };
@@ -25,11 +24,9 @@ export default function GameStatusDisplay({
   status,
   activePlayer,
 }: GameStatusDisplayProps) {
-  const { socket, user } = useContext(UserContext);
+  const { socket } = useContext(UserContext);
   const { gameId } = useParams();
-
-  const playerId = parseCookies(document.cookie)[`${gameId}(${activePlayer})`];
-
+  console.log(status);
   return (
     <div className={styles.game_over_display}>
       <IconBtn
@@ -46,7 +43,7 @@ export default function GameStatusDisplay({
                 {status.payload && (
                   <>
                     <p>Game over</p>
-                    {status.payload.winner && (
+                    {status.payload.winner != null && (
                       <p>
                         {status.payload.winner === 'w' ? 'White' : 'Black'} won
                         by {status.payload.result}
@@ -71,7 +68,7 @@ export default function GameStatusDisplay({
                     size="small"
                     onClick={() => {
                       try {
-                        resign();
+                        resign(socket!, gameId!, activePlayer);
                       } catch (err) {
                         console.log(err);
                       }

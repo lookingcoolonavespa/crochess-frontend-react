@@ -53,15 +53,18 @@ import { DrawRecord } from '@backend/types';
 
 function getBoardStates(moves: Move[]): Board[] {
   let game = new Game();
-  return moves.map((move) => {
-    const from = move.slice(0, 2) as Square;
-    const to = move.slice(2, 4) as Square;
-    const promote = move[5] as PromotePieceType | undefined;
 
-    game.makeMove(from, to, promote);
+  return moves.length === 0
+    ? [game.board]
+    : moves.map((move) => {
+        const from = move.slice(0, 2) as Square;
+        const to = move.slice(2, 4) as Square;
+        const promote = move[5] as PromotePieceType | undefined;
 
-    return [...game.board];
-  });
+        game.makeMove(from, to, promote);
+
+        return [...game.board];
+      });
 }
 
 export default function ActiveGame() {
@@ -91,7 +94,7 @@ export default function ActiveGame() {
       case 'init': {
         return action.payload;
       }
-      case 'update on move game-over':
+      case 'game over':
       case 'update on move': {
         return { ...state, ...action.payload };
       }
@@ -166,9 +169,9 @@ export default function ActiveGame() {
 
   useEffect(
     function onFirstLoad() {
+      socket?.unsubscribe('/topic/api/gameseeks');
       socket?.subscribe(`/app/api/game/${gameId}`, (message) => {
         const game: GameSchema = JSON.parse(message.body);
-        console.log(game);
         const gameState = game.gameState;
         const boardState = convertFromFen(gameState.fen) as FenState;
         if (!game.details.result) {
@@ -210,7 +213,7 @@ export default function ActiveGame() {
         }
 
         const moves = gameState.moves || '';
-
+        console.log(game.details);
         dispatch({
           type: 'init',
           payload: {
@@ -239,8 +242,8 @@ export default function ActiveGame() {
       const subscription = socket.subscribe(
         `/topic/api/game/${gameId}`,
         (message) => {
-          interface UpdateOnMoveGameOver {
-            event: 'update on move game-over';
+          interface UpdateOnGameOver {
+            event: 'game over';
             payload: GameOverGameState;
           }
           interface UpdateOnMove {
@@ -251,11 +254,10 @@ export default function ActiveGame() {
             event: 'update draw';
             payload: DrawRecord;
           }
-          type Message = UpdateOnMove | UpdateOnMoveGameOver | UpdateDraw;
+          type Message = UpdateOnMove | UpdateOnGameOver | UpdateDraw;
           const data = JSON.parse(message.body) as Message;
-
           switch (data.event) {
-            case 'update on move game-over':
+            case 'game over':
             case 'update': {
               const gameState = data.payload;
               const boardState = convertFromFen(gameState.fen) as FenState;
@@ -278,8 +280,10 @@ export default function ActiveGame() {
                 else return prev;
               });
 
-              if (data.event === 'update on move game-over') {
+              if (data.event === 'game over') {
                 const gs = data.payload;
+                console.log(gs);
+
                 dispatch({
                   type: data.event,
                   payload: {

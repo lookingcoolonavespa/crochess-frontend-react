@@ -150,8 +150,8 @@ export default function Interface({
 
   return (
     <div className={styles.main}>
-      <Timer className={`${styles.timer} ${styles.top}`} {...topTimer} />
-      <TimerBar maxTime={topTimer.maxTime} time={topTimer.time} />
+      {/* <Timer className={`${styles.timer} ${styles.top}`} {...topTimer} />
+      <TimerBar maxTime={topTimer.maxTime} time={topTimer.time} /> */}
       <div>
         {status && (
           <MemoizedGameStatusDisplay
@@ -173,8 +173,8 @@ export default function Interface({
           list={mainControls}
         />
       )}
-      <TimerBar maxTime={bottomTimer.maxTime} time={bottomTimer.time} />
-      <Timer className={`${styles.timer} ${styles.bottom}`} {...bottomTimer} />
+      {/* <TimerBar maxTime={bottomTimer.maxTime} time={bottomTimer.time} />
+      <Timer className={`${styles.timer} ${styles.bottom}`} {...bottomTimer} /> */}
     </div>
   );
 }
