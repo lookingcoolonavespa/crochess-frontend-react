@@ -170,68 +170,13 @@ export default function ActiveGame() {
   useEffect(
     function onFirstLoad() {
       socket?.unsubscribe('/topic/api/gameseeks');
-      socket?.subscribe(`/app/api/game/${gameId}`, (message) => {
-        const game: GameSchema = JSON.parse(message.body);
-        const gameState = game.gameState;
-        const boardState = convertFromFen(gameState.fen) as FenState;
-        if (!game.details.result) {
-          timeDetailsRef.current[boardState.activeColor] = {
-            timeLeftAtTurnStart: gameState[`${boardState.activeColor}_time`],
-            // if server has stamp use that one, otherwise initiate one
-            stampAtTurnStart: gameState.time_stamp_at_turn_start || Date.now(),
-          };
-        }
-
-        maxTimeRef.current = game.time;
-        activePlayerRef.current = getActivePlayer(
-          gameId!,
-          game.w_id,
-          game.b_id
-        );
-        const history = gameState.history?.split(' ');
-        setBoardBeingViewed(history ? history.length - 1 : 0);
-        setGameboardView(() => activePlayerRef.current || 'w');
-
-        let time: AllTimes = { w: 0, b: 0 };
-        if (gameState.time_stamp_at_turn_start) {
-          // if fetch happens in middle of game
-          const elapsedTime = Date.now() - gameState.time_stamp_at_turn_start;
-          let timeLeft =
-            gameState[`${boardState.activeColor}_time`] - elapsedTime;
-          if (timeLeft < 0) timeLeft = 0;
-
-          time = {
-            [boardState.activeColor]: timeLeft,
-            [OPP_COLOR[boardState.activeColor]]:
-              gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
-          } as AllTimes;
-        } else {
-          time = {
-            w: gameState.w_time,
-            b: gameState.b_time,
-          };
-        }
-
-        const moves = gameState.moves || '';
-        console.log(game.details);
-        dispatch({
-          type: 'init',
-          payload: {
-            time,
-            board: boardState.board,
-            activeColor: boardState.activeColor,
-            drawRecord: game.drawRecord,
-            history: parseHistory(gameState.history || ''),
-            moves: moves.split(' ') as Move[],
-            enPassant: boardState.enPassant,
-            castleRights: boardState.castleRights,
-            gameOverDetails: {
-              winner: game.details.winner,
-              result: game.details.result,
-            },
-          },
-        });
-      });
+      const subscription = socket?.subscribe(
+        `/app/api/game/${gameId}`,
+        () => {}
+      );
+      return () => {
+        subscription?.unsubscribe();
+      };
     },
     [socket, gameId]
   );
@@ -242,6 +187,10 @@ export default function ActiveGame() {
       const subscription = socket.subscribe(
         `/topic/api/game/${gameId}`,
         (message) => {
+          interface Init {
+            event: 'init';
+            payload: GameSchema;
+          }
           interface UpdateOnGameOver {
             event: 'game over';
             payload: GameOverGameState;
@@ -254,9 +203,75 @@ export default function ActiveGame() {
             event: 'update draw';
             payload: DrawRecord;
           }
-          type Message = UpdateOnMove | UpdateOnGameOver | UpdateDraw;
+          type Message = Init | UpdateOnMove | UpdateOnGameOver | UpdateDraw;
           const data = JSON.parse(message.body) as Message;
           switch (data.event) {
+            case 'init': {
+              const game: GameSchema = JSON.parse(message.body).payload;
+              const gameState = game.gameState;
+              console.log(game);
+              const boardState = convertFromFen(gameState.fen) as FenState;
+              if (!game.details.result) {
+                timeDetailsRef.current[boardState.activeColor] = {
+                  timeLeftAtTurnStart:
+                    gameState[`${boardState.activeColor}_time`],
+                  // if server has stamp use that one, otherwise initiate one
+                  stampAtTurnStart:
+                    gameState.time_stamp_at_turn_start || Date.now(),
+                };
+              }
+
+              maxTimeRef.current = game.time;
+              activePlayerRef.current = getActivePlayer(
+                gameId!,
+                game.w_id,
+                game.b_id
+              );
+              const history = gameState.history?.split(' ');
+              setBoardBeingViewed(history ? history.length - 1 : 0);
+              setGameboardView(() => activePlayerRef.current || 'w');
+
+              let time: AllTimes = { w: 0, b: 0 };
+              if (gameState.time_stamp_at_turn_start) {
+                // if fetch happens in middle of game
+                const elapsedTime =
+                  Date.now() - gameState.time_stamp_at_turn_start;
+                let timeLeft =
+                  gameState[`${boardState.activeColor}_time`] - elapsedTime;
+                if (timeLeft < 0) timeLeft = 0;
+
+                time = {
+                  [boardState.activeColor]: timeLeft,
+                  [OPP_COLOR[boardState.activeColor]]:
+                    gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
+                } as AllTimes;
+              } else {
+                time = {
+                  w: gameState.w_time,
+                  b: gameState.b_time,
+                };
+              }
+
+              const moves = gameState.moves || '';
+              dispatch({
+                type: 'init',
+                payload: {
+                  time,
+                  board: boardState.board,
+                  activeColor: boardState.activeColor,
+                  drawRecord: game.drawRecord,
+                  history: parseHistory(gameState.history || ''),
+                  moves: moves.split(' ') as Move[],
+                  enPassant: boardState.enPassant,
+                  castleRights: boardState.castleRights,
+                  gameOverDetails: {
+                    winner: game.details.winner,
+                    result: game.details.result,
+                  },
+                },
+              });
+              break;
+            }
             case 'game over':
             case 'update': {
               const gameState = data.payload;
@@ -430,7 +445,6 @@ export default function ActiveGame() {
       const valid = validateMove(to);
       if (!valid) return;
       if (promote && !checkPromotion(to)) return;
-
       // get the playerId from cookie so players can play from multiple tabs
       const cookieObj = parseCookies(document.cookie);
       const playerId = cookieObj[`${gameId}(${activePlayerRef.current})`];
