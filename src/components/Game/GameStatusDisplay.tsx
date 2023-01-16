@@ -26,7 +26,6 @@ export default function GameStatusDisplay({
 }: GameStatusDisplayProps) {
   const { socket } = useContext(UserContext);
   const { gameId } = useParams();
-  console.log(status);
   return (
     <div className={styles.game_over_display}>
       <IconBtn

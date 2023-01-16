@@ -73,7 +73,6 @@ export function sendMove(
 
 export function initPlayEngine(stompClient: Client, user: string) {
   const userColor = getRdmColor();
-  console.log(userColor)
   let whitePlayer, blackPlayer;
   switch (userColor) {
     case 'w':

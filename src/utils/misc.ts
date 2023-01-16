@@ -44,8 +44,6 @@ export function getActivePlayer(
   blackId: string
 ): Colors | null {
   const cookieObj = parseCookies(document.cookie);
-  console.log(cookieObj);
-  console.log(sessionStorage.getItem('user'));
   switch (true) {
     case cookieObj[`${gameId}(w)`] === whiteId &&
       cookieObj[`${gameId}(b)`] === blackId: {
