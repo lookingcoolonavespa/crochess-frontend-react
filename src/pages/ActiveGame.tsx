@@ -60,7 +60,6 @@ function getBoardStates(moves: Move[]): Board[] {
         const from = move.slice(0, 2) as Square;
         const to = move.slice(2, 4) as Square;
         const promote = move[5] as PromotePieceType | undefined;
-
         game.makeMove(from, to, promote);
 
         return [...game.board];
@@ -208,16 +207,12 @@ export default function ActiveGame() {
           switch (data.event) {
             case 'init': {
               const game: GameSchema = JSON.parse(message.body).payload;
-              const gameState = game.gameState;
-              console.log(game);
-              const boardState = convertFromFen(gameState.fen) as FenState;
-              if (!game.details.result) {
+              const boardState = convertFromFen(game.fen) as FenState;
+              if (!game.result) {
                 timeDetailsRef.current[boardState.activeColor] = {
-                  timeLeftAtTurnStart:
-                    gameState[`${boardState.activeColor}_time`],
+                  timeLeftAtTurnStart: game[`${boardState.activeColor}_time`],
                   // if server has stamp use that one, otherwise initiate one
-                  stampAtTurnStart:
-                    gameState.time_stamp_at_turn_start || Date.now(),
+                  stampAtTurnStart: game.time_stamp_at_turn_start || Date.now(),
                 };
               }
 
@@ -227,32 +222,31 @@ export default function ActiveGame() {
                 game.w_id,
                 game.b_id
               );
-              const history = gameState.history?.split(' ');
+              const history = game.history?.split(' ');
               setBoardBeingViewed(history ? history.length - 1 : 0);
               setGameboardView(() => activePlayerRef.current || 'w');
 
               let time: AllTimes = { w: 0, b: 0 };
-              if (gameState.time_stamp_at_turn_start) {
+              if (game.time_stamp_at_turn_start) {
                 // if fetch happens in middle of game
-                const elapsedTime =
-                  Date.now() - gameState.time_stamp_at_turn_start;
+                const elapsedTime = Date.now() - game.time_stamp_at_turn_start;
                 let timeLeft =
-                  gameState[`${boardState.activeColor}_time`] - elapsedTime;
+                  game[`${boardState.activeColor}_time`] - elapsedTime;
                 if (timeLeft < 0) timeLeft = 0;
 
                 time = {
                   [boardState.activeColor]: timeLeft,
                   [OPP_COLOR[boardState.activeColor]]:
-                    gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
+                    game[`${OPP_COLOR[boardState.activeColor]}_time`],
                 } as AllTimes;
               } else {
                 time = {
-                  w: gameState.w_time,
-                  b: gameState.b_time,
+                  w: game.w_time,
+                  b: game.b_time,
                 };
               }
 
-              const moves = gameState.moves || '';
+              const moves = game.moves || '';
               dispatch({
                 type: 'init',
                 payload: {
@@ -260,13 +254,13 @@ export default function ActiveGame() {
                   board: boardState.board,
                   activeColor: boardState.activeColor,
                   drawRecord: game.drawRecord,
-                  history: parseHistory(gameState.history || ''),
+                  history: parseHistory(game.history || ''),
                   moves: moves.split(' ') as Move[],
                   enPassant: boardState.enPassant,
                   castleRights: boardState.castleRights,
                   gameOverDetails: {
-                    winner: game.details.winner,
-                    result: game.details.result,
+                    winner: game.winner,
+                    result: game.result,
                   },
                 },
               });

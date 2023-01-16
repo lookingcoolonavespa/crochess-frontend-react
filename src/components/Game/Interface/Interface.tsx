@@ -66,6 +66,7 @@ export default function Interface({
     offerDrawConfirmation,
   });
   useEffect(() => {
+    // 
     const currentVariables = {
       gameOver: !!gameOverDetails?.result,
       offeredDraw,

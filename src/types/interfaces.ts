@@ -78,7 +78,7 @@ export interface GameStateSchema {
   history: string | null;
   moves: string;
 }
-export interface GameSchema {
+export interface GameSchema extends GameOverGameState {
   w_id: string;
   b_id: string;
   time: number;
