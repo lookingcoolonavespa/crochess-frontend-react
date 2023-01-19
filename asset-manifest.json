@@ -1,0 +1,35 @@
+{
+  "files": {
+    "main.css": "/crochess-frontend-react/static/css/main.0d25fc4c.css",
+    "main.js": "/crochess-frontend-react/static/js/main.c14d6c5d.js",
+    "static/media/Montserrat-VariableFont_wght.ttf": "/crochess-frontend-react/static/media/Montserrat-VariableFont_wght.3068cdb43142f5625baf.ttf",
+    "static/media/Hubballi-Regular.ttf": "/crochess-frontend-react/static/media/Hubballi-Regular.dbac69cf08b955d4c2a4.ttf",
+    "static/media/rook-b.svg": "/crochess-frontend-react/static/media/rook-b.d9ce202955ff008bb2ef8d82e986a07f.svg",
+    "static/media/knight-b.svg": "/crochess-frontend-react/static/media/knight-b.94f679c12ee508138883d69fa9e8aef8.svg",
+    "static/media/king-b.svg": "/crochess-frontend-react/static/media/king-b.a817fed104170cf69b79261b73badf8d.svg",
+    "static/media/queen-b.svg": "/crochess-frontend-react/static/media/queen-b.b604aeba1ce4eb8d44e3e8387ec9c318.svg",
+    "static/media/king-w.svg": "/crochess-frontend-react/static/media/king-w.dfdfbb5277498c07a440ad1bdbd3c114.svg",
+    "static/media/bishop-w.svg": "/crochess-frontend-react/static/media/bishop-w.54f9aeb0b4db37d951e51b6615b2a401.svg",
+    "static/media/bishop-b.svg": "/crochess-frontend-react/static/media/bishop-b.d33b8e6569743ee74de9e22e171e1fde.svg",
+    "static/media/knight-w.svg": "/crochess-frontend-react/static/media/knight-w.00917bd8bb33fde2dc5e5f114877d681.svg",
+    "static/media/rook-w.svg": "/crochess-frontend-react/static/media/rook-w.0e389d131e44ff4fafe43a9d28df7e42.svg",
+    "static/media/queen-w.svg": "/crochess-frontend-react/static/media/queen-w.d757b7f91d3f38bee6145bb6d1a3d97d.svg",
+    "index.html": "/crochess-frontend-react/index.html",
+    "static/media/pawn-b.svg": "/crochess-frontend-react/static/media/pawn-b.b10e0169388d84aa802010ec77471ad4.svg",
+    "static/media/pawn-w.svg": "/crochess-frontend-react/static/media/pawn-w.e85a9e624724cc019cd5662e2108e644.svg",
+    "static/media/flip-2.svg": "/crochess-frontend-react/static/media/flip-2.8956e3d1902d8b9a8bbca5552f392590.svg",
+    "static/media/speed-fill.svg": "/crochess-frontend-react/static/media/speed-fill.bd1b1ee8a1fcce4813148f575e83fd7d.svg",
+    "static/media/rewind-fill.svg": "/crochess-frontend-react/static/media/rewind-fill.6a5e48a9878e8823487e0eff990cb53d.svg",
+    "static/media/close-line.svg": "/crochess-frontend-react/static/media/close-line.058af5b2654112a53b1b0a6d60692ace.svg",
+    "static/media/skip-forward-fill.svg": "/crochess-frontend-react/static/media/skip-forward-fill.551d2bb94b20c7b3dd06bb0035f60a61.svg",
+    "static/media/skip-back-fill.svg": "/crochess-frontend-react/static/media/skip-back-fill.c2a0f05d7b97572f6c17bb34f057aeec.svg",
+    "static/media/flag-fill.svg": "/crochess-frontend-react/static/media/flag-fill.f2557005f439c639d863cc3a718340d0.svg",
+    "static/media/check-line.svg": "/crochess-frontend-react/static/media/check-line.3f29db899e39cb68dca831bea022f649.svg",
+    "main.0d25fc4c.css.map": "/crochess-frontend-react/static/css/main.0d25fc4c.css.map",
+    "main.c14d6c5d.js.map": "/crochess-frontend-react/static/js/main.c14d6c5d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0d25fc4c.css",
+    "static/js/main.c14d6c5d.js"
+  ]
+}
