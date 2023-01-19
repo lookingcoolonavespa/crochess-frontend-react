@@ -1,6 +1,6 @@
 # crochess-frontend
 
-live: https://lookingcoolonavespa.github.io/crochess-frontend/
+live: https://lookingcoolonavespa.github.io/crochess-frontend-react/
 
 ## tech stack
 
