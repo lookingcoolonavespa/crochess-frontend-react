@@ -203,8 +203,6 @@ export default function ActiveGame() {
             payload: DrawRecord;
           }
           type Message = Init | UpdateOnMove | UpdateOnGameOver | UpdateDraw;
-          console.log(message.body);
-          if (!message.body) return;
           const data = JSON.parse(message.body) as Message;
           switch (data.event) {
             case 'init': {
@@ -293,7 +291,6 @@ export default function ActiveGame() {
 
               if (data.event === 'game over') {
                 const gs = data.payload;
-                console.log(gs);
 
                 dispatch({
                   type: data.event,
