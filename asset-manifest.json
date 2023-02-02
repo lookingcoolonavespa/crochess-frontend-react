@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/crochess-frontend-react/static/css/main.0d25fc4c.css",
-    "main.js": "/crochess-frontend-react/static/js/main.7b9a3d55.js",
+    "main.css": "/crochess-frontend-react/static/css/main.63f0112f.css",
+    "main.js": "/crochess-frontend-react/static/js/main.7f8cb275.js",
     "static/media/Montserrat-VariableFont_wght.ttf": "/crochess-frontend-react/static/media/Montserrat-VariableFont_wght.3068cdb43142f5625baf.ttf",
     "static/media/Hubballi-Regular.ttf": "/crochess-frontend-react/static/media/Hubballi-Regular.dbac69cf08b955d4c2a4.ttf",
     "static/media/rook-b.svg": "/crochess-frontend-react/static/media/rook-b.d9ce202955ff008bb2ef8d82e986a07f.svg",
@@ -25,11 +25,11 @@
     "static/media/skip-back-fill.svg": "/crochess-frontend-react/static/media/skip-back-fill.c2a0f05d7b97572f6c17bb34f057aeec.svg",
     "static/media/flag-fill.svg": "/crochess-frontend-react/static/media/flag-fill.f2557005f439c639d863cc3a718340d0.svg",
     "static/media/check-line.svg": "/crochess-frontend-react/static/media/check-line.3f29db899e39cb68dca831bea022f649.svg",
-    "main.0d25fc4c.css.map": "/crochess-frontend-react/static/css/main.0d25fc4c.css.map",
-    "main.7b9a3d55.js.map": "/crochess-frontend-react/static/js/main.7b9a3d55.js.map"
+    "main.63f0112f.css.map": "/crochess-frontend-react/static/css/main.63f0112f.css.map",
+    "main.7f8cb275.js.map": "/crochess-frontend-react/static/js/main.7f8cb275.js.map"
   },
   "entrypoints": [
-    "static/css/main.0d25fc4c.css",
-    "static/js/main.7b9a3d55.js"
+    "static/css/main.63f0112f.css",
+    "static/js/main.7f8cb275.js"
   ]
 }
