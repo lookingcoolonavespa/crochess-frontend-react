@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { formatTime } from '../../../utils/timerStuff';
+import { useEffect, useMemo } from 'react';
+import { dayjs, formatTime } from '../../../utils/timerStuff';
 
 export interface TimerProps {
   timeLeftAtStart: number;
@@ -19,14 +19,7 @@ export default function Timer({
   active,
 }: TimerProps) {
   const classNames = [className];
-  console.table({
-    className,
-    timeLeftAtStart,
-    timeStampAtStart,
-    time,
-    setTime,
-    active,
-  });
+
   if (active) classNames.push('active');
 
   useEffect(() => {
@@ -40,15 +33,30 @@ export default function Timer({
       const timeLeft = timeLeftAtStart - elapsed;
       if (timeLeft < 0) return clearInterval(interval);
       setTime(timeLeft);
-      // if (!timeLeft) return clearInterval(interval);
+      if (!timeLeft) return clearInterval(interval);
     }, 1);
 
     return () => clearInterval(interval);
   }, [active, time, setTime, timeLeftAtStart, timeStampAtStart]);
 
+  const strArr = time === null ? '-:--:--' : formatTime(time).split(':');
+
   return (
     <div className={classNames.join(' ')}>
-      {time === null ? '-:--:--' : formatTime(time)}
+      <span>{strArr[0]}</span>:<span>{strArr[1]}</span>
+      {strArr[2] && (
+        <>
+          :
+          <span
+            style={{
+              fontSize: '0.6em',
+              marginBottom: '0.1em',
+            }}
+          >
+            {strArr[2]}
+          </span>
+        </>
+      )}
     </div>
   );
 }

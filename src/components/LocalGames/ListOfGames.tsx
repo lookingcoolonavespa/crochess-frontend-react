@@ -15,7 +15,7 @@ export default function ListOfGames({ active }: ListOfGamesProps) {
   const { listOfGames } = useListOfGames(socket!);
   const rootClasses = [styles.main];
   if (!active) rootClasses.push('inactive');
-
+  console.log(listOfGames);
   return (
     <div className={rootClasses.join(' ')}>
       <header className="section-header">

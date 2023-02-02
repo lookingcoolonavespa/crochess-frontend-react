@@ -86,6 +86,7 @@ export interface GameSchema extends GameOverGameState {
   details: GameOverDetails;
   gameState: GameStateSchema;
   drawRecord: DrawRecord;
+  showTimer: boolean;
 }
 
 export interface GameStateClient

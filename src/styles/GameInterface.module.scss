@@ -24,15 +24,18 @@ $timer-height: 50px;
 
 .timer {
   @include mixins.flexCenter(row);
+  align-items: flex-end;
+  justify-content: flex-start;
 
+  position: absolute;
   left: 0;
   height: 50px;
-  width: 50%;
+  width: 75%;
   overflow: hidden;
   font-family: 'Hubballi';
   font-size: 40px;
   background-color: var(--foreground);
-  border-radius: 5px;
+  padding: 0 0.4em;
 
   &:global(.active) {
     background-color: hsl(86, 70%, 88%);
@@ -40,9 +43,11 @@ $timer-height: 50px;
 }
 .top {
   top: -$timer-height;
+  border-radius: 5px 5px 0 0;
 }
 .bottom {
   bottom: -$timer-height;
+  border-radius: 0 0 5px 5px;
 }
 
 .game_over_display {

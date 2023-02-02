@@ -82,6 +82,7 @@ export default function ActiveGame() {
       stampAtTurnStart: 0,
     },
   });
+  const showTimer = useRef(false);
 
   const [gameboardView, setGameboardView] = useState<Colors>('w');
 
@@ -222,6 +223,9 @@ export default function ActiveGame() {
                 game.w_id,
                 game.b_id
               );
+              showTimer.current =
+                game.b_id !== 'engine' && game.w_id !== 'engine';
+
               const history = game.history?.split(' ');
               setBoardBeingViewed(history ? history.length - 1 : 0);
               setGameboardView(() => activePlayerRef.current || 'w');
@@ -283,7 +287,9 @@ export default function ActiveGame() {
                   gameState[`${OPP_COLOR[boardState.activeColor]}_time`],
               } as AllTimes;
 
-              const moves = gameState.moves.split(' ') as Move[];
+              const moves = gameState.moves
+                ? (gameState.moves.split(' ') as Move[])
+                : [];
               setBoardBeingViewed((prev) => {
                 if (prev === moves.length - 2) return moves.length - 1;
                 else return prev;
@@ -516,6 +522,7 @@ export default function ActiveGame() {
           validateMove={validateMove}
         />
         <Interface
+          showTimer={showTimer.current}
           activePlayer={activePlayerRef.current}
           claimDraw={
             !!activePlayerRef.current &&

@@ -45,6 +45,8 @@ export function createGame(
       break;
   }
 
+  console.log({ time: gameSeek.time, increment: gameSeek.increment });
+
   stompClient.publish({
     destination: '/app/api/game',
     body: JSON.stringify({

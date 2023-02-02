@@ -19,7 +19,6 @@ export default function GameDoor({ gameSeek }: GameDoorProps) {
     'space-evenly',
   ];
   if (gameSeek.seeker === user) rootClasses.push(styles.my_seek);
-
   return (
     <div
       className={rootClasses.join(' ')}
@@ -39,7 +38,7 @@ export default function GameDoor({ gameSeek }: GameDoorProps) {
         gameSeek.gameType,
       ].map((t, i) => (
         <p key={i} className="text-center">
-          {t}
+          {t.toLowerCase()}
         </p>
       ))}
     </div>

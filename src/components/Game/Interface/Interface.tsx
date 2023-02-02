@@ -27,6 +27,7 @@ interface InterfaceProps {
   gameOverDetails: GameOverDetails;
   offeredDraw: boolean;
   claimDraw: boolean;
+  showTimer: boolean;
 }
 
 interface TimeDetails extends Omit<TimerProps, 'className'> {
@@ -44,6 +45,7 @@ export default function Interface({
   gameOverDetails,
   offeredDraw,
   claimDraw,
+  showTimer,
 }: InterfaceProps) {
   const [status, setStatus] = useState<{
     type:
@@ -66,7 +68,7 @@ export default function Interface({
     offerDrawConfirmation,
   });
   useEffect(() => {
-    // 
+    //
     const currentVariables = {
       gameOver: !!gameOverDetails?.result,
       offeredDraw,
@@ -151,8 +153,12 @@ export default function Interface({
 
   return (
     <div className={styles.main}>
-      {/* <Timer className={`${styles.timer} ${styles.top}`} {...topTimer} />
-      <TimerBar maxTime={topTimer.maxTime} time={topTimer.time} /> */}
+      {showTimer && (
+        <>
+          <Timer className={`${styles.timer} ${styles.top}`} {...topTimer} />
+          <TimerBar maxTime={topTimer.maxTime} time={topTimer.time} />
+        </>
+      )}
       <div>
         {status && (
           <MemoizedGameStatusDisplay
@@ -174,8 +180,15 @@ export default function Interface({
           list={mainControls}
         />
       )}
-      {/* <TimerBar maxTime={bottomTimer.maxTime} time={bottomTimer.time} />
-      <Timer className={`${styles.timer} ${styles.bottom}`} {...bottomTimer} /> */}
+      {showTimer && (
+        <>
+          <TimerBar maxTime={bottomTimer.maxTime} time={bottomTimer.time} />
+          <Timer
+            className={`${styles.timer} ${styles.bottom}`}
+            {...bottomTimer}
+          />
+        </>
+      )}
     </div>
   );
 }

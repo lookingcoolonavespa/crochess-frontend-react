@@ -23,6 +23,7 @@ export default function useConnectToSocket(
       stompClient.connectHeaders = { name: userId };
       stompClient.activate();
       stompClient.onConnect = () => {
+        console.log(userId);
         setUser(userId);
         sessionStorage.setItem('user', userId);
         // used to identify user if they refresh or disconnect
